@@ -13,7 +13,7 @@ public class UserResponseDTO {
 
     private String email;
 
-    private StringBuffer bio;
+    private String bio;
 
     private LocalDate birthDate;
 

@@ -2,20 +2,26 @@ package com.pm.userservice.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String fullName;
 
     @Email
@@ -26,9 +32,12 @@ public class User {
     private Integer phoneNumber;
 
     @Column(nullable = true)
-    private StringBuffer bio;
+    private String  bio;
 
     @Column(nullable = false)
+    private String imageUrl;
+
+    @Column(nullable = true)
     private LocalDate birthDate;
 
     @Column(nullable = false)

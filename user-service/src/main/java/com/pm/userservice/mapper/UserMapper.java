@@ -1,9 +1,11 @@
 package com.pm.userservice.mapper;
 
-import com.pm.userservice.dto.UserRequestDTO;
+import com.pm.userservice.dto.UserCreationRequestDTO;
 import com.pm.userservice.dto.UserResponseDTO;
 import com.pm.userservice.entity.User;
 import com.pm.userservice.repository.UserRepository;
+
+import java.time.LocalDate;
 
 public class UserMapper {
 
@@ -21,12 +23,18 @@ public class UserMapper {
 
     }
 
-    /*
-    public static User toModel(UserRequestDTO userRequestDTO){
 
-        return
+    public static User toCreatingModel(UserCreationRequestDTO userRequestDTO){
+
+        User user = User.builder()
+                .id(userRequestDTO.getId())
+                .email(userRequestDTO.getEmail())
+                .registeredDate(LocalDate.now())
+                .build();
+
+        return user;
 
     }
-*/
+
 
 }
