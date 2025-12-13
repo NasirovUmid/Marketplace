@@ -12,12 +12,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaEventConsumer {
 
-    private final UserService userService;
     private final Logger log = LoggerFactory.getLogger(KafkaEventConsumer.class);
 
-    public KafkaEventConsumer(UserService userService) {
-        this.userService = userService;
-    }
 
     //  Anyways i get EMAIL and ID from auth-service though its vreating new one or updating I WILL DIFFER BY EVENT
     @KafkaListener(topics = "users",groupId = "user-service")
@@ -26,10 +22,6 @@ public class KafkaEventConsumer {
 
         log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}]",
                 userEvent.id(),userEvent.email(),userEvent.eventType());
-
-
-
-
 
     }
 
