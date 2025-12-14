@@ -18,7 +18,7 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    //@GeneratedValue(strategy = GenerationType.AUTO)  we will get id from request it should be generated in auth-service already No meaning creating new one
     private UUID id;
 
     @Column(nullable = true)
