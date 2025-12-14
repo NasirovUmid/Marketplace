@@ -1,18 +1,18 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="user-service-DataBase" type="docker-deploy" factoryName="docker-image" server-name="Docker">
+  <configuration default="false" name="auth-service-DataBase" type="docker-deploy" factoryName="docker-image" server-name="Docker">
     <deployment type="docker-image">
       <settings>
         <option name="imageTag" value="postgres:17.6" />
-        <option name="containerName" value="user-service-DataBase" />
+        <option name="containerName" value="auth-service-DataBase" />
         <option name="envVars">
           <list>
             <DockerEnvVarImpl>
-              <option name="name" value="POSTGRES_USER" />
-              <option name="value" value="postgres" />
+              <option name="name" value="POSTGRES_DB" />
+              <option name="value" value="auth-service-DB" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
-              <option name="name" value="POSTGRES_DB" />
-              <option name="value" value="users_db" />
+              <option name="name" value="POSTGRES_USER" />
+              <option name="value" value="postgres" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="POSTGRES_PASSWORD" />
@@ -24,7 +24,7 @@
           <list>
             <DockerPortBindingImpl>
               <option name="containerPort" value="5432" />
-              <option name="hostPort" value="5000" />
+              <option name="hostPort" value="5001" />
             </DockerPortBindingImpl>
           </list>
         </option>
@@ -32,8 +32,8 @@
         <option name="volumeBindings">
           <list>
             <DockerVolumeBindingImpl>
-              <option name="containerPath" value="/var1/marketplace/user-service/data" />
-              <option name="hostPath" value="C:\Java\JAVA\REVISION\Microservice\database_volumes\user-service-DataBase" />
+              <option name="containerPath" value="/var/marketplace/auth-service/data" />
+              <option name="hostPath" value="C:\Java\JAVA\REVISION\Microservice\database_volumes\auth-service-DataBase" />
             </DockerVolumeBindingImpl>
           </list>
         </option>

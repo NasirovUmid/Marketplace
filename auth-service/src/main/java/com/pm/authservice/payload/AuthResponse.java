@@ -1,9 +1,10 @@
 package com.pm.authservice.payload;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@Data
-public class ApiResponse {
+@AllArgsConstructor
+public class AuthResponse {
 
       private String message;
 

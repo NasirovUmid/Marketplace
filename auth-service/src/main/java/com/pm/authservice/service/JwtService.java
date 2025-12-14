@@ -1,6 +1,7 @@
 package com.pm.authservice.service;
 
 import com.pm.authservice.dto.JwtAuthenticationDto;
+import com.pm.authservice.enums.TokenType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
@@ -72,6 +73,14 @@ public class JwtService {
         return claims.getSubject();
     }
 
+    public Claims extractClaims(String token){
+        return Jwts.parser()
+                .verifyWith((SecretKey) secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     public boolean validateJwtToken(String token){
 
         try {
@@ -96,12 +105,14 @@ public class JwtService {
         return false;
     }
 
-    private String generateJwtToken(String email){
+    private String
+    generateJwtToken(String email){
 
         Date date =Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
                 .subject(email)
+                .claim("type",TokenType.ACCESS)
                 .expiration(date)
                 .signWith(secretKey)
                 .compact();
@@ -114,6 +125,7 @@ public class JwtService {
 
     return Jwts.builder()
             .subject(email)
+            .claim("type",TokenType.REFRESH)
             .expiration(date)
             .signWith(secretKey)
             .compact();

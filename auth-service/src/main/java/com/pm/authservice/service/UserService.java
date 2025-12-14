@@ -5,7 +5,10 @@ import com.pm.authservice.dto.RefreshTokenDto;
 import com.pm.authservice.dto.UserCredentialsDto;
 import com.pm.authservice.entity.User;
 import com.pm.authservice.enums.Role;
+import com.pm.authservice.enums.TokenType;
+import com.pm.authservice.payload.AuthResponse;
 import com.pm.authservice.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +29,7 @@ public class UserService {
         this.jwtService = jwtService;
     }
 
-    public JwtAuthenticationDto signIn(UserCredentialsDto userCredentialsDto) throws AuthenticationException {
+    public JwtAuthenticationDto login(UserCredentialsDto userCredentialsDto) throws AuthenticationException {
 
         User user = findByCredentials(userCredentialsDto);
         return jwtService.generateAuthToken(user.getEmail());
@@ -44,27 +47,42 @@ public class UserService {
         return user;
     }
 
-    public JwtAuthenticationDto refreshToken(RefreshTokenDto refreshTokenDto) throws Exception {
+    public AuthResponse refreshToken(RefreshTokenDto refreshTokenDto) throws Exception {
 
     String refreshToken = refreshTokenDto.getRefreshToken();
 
-    if (refreshToken != null && jwtService.validateJwtToken(refreshToken)){
+        Claims claims = jwtService.extractClaims(refreshToken);
+
+        if (claims.get("type") != TokenType.REFRESH) return new AuthResponse("Not a Refresh Token",false,refreshToken);
+
+
+
+    if (refreshToken != null && jwtService.validateJwtToken(refreshToken)) {
 
         User user = findByEmail(jwtService.getEmailFromToken(refreshToken));
 
-        return jwtService.refreshBaseToken(user.getEmail(), refreshToken);
+        return new AuthResponse("Token is updated", true, jwtService.refreshBaseToken(user.getEmail(), refreshToken));
 
-      }
-        throw new  AuthenticationException("Invalid refresh token");
     }
 
-    public String creatingUser(User user){
+    return new AuthResponse("No RefreshToken",false,refreshToken);
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.ROLE_USER); // Default , if necessary should be changed manually (via update method in controller)
+    }
+
+    public AuthResponse creatingUser(UserCredentialsDto userCredentialsDto) throws Exception {
+
+            if (findByEmail(userCredentialsDto.getEmail())!=null) return new AuthResponse("Email EXISTS",false,userCredentialsDto);
+
+        User user = User.builder()
+                        .email(userCredentialsDto.getEmail())
+                                .password(passwordEncoder.encode(userCredentialsDto.getPassword()))
+                                        .role(Role.ROLE_USER)
+                                                .build();
+
+                                          // Default , if necessary should be changed manually (via update method in controller)
         userRepository.save(user);
 
-        return "Its done";
+        return new AuthResponse("User is created",true,user);
     }
 
     private User findByCredentials(UserCredentialsDto userCredentialsDto) throws AuthenticationException {
@@ -82,9 +100,7 @@ public class UserService {
     private User findByEmail(String email) throws Exception {
 
         Optional<User> user = userRepository.findUserByEmail(email);
-        if (!user.isPresent()) throw new Exception("Not Found "+email);
-
-        return  user.get() ;
+        return user.orElse(null);
 
     }
 }

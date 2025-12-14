@@ -2,12 +2,14 @@ package com.pm.authservice.entity;
 
 import com.pm.authservice.enums.Role;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@Builder
 public class User {
 
     @Id
