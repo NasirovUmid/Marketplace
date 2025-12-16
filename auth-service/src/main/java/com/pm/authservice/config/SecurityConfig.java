@@ -28,8 +28,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http){
 
     http.authorizeHttpRequests(authorize ->
-            authorize.requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/users/","/users/update-user/").authenticated())
+            authorize.anyRequest().permitAll())
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

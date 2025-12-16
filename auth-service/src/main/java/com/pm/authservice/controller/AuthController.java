@@ -3,14 +3,12 @@ package com.pm.authservice.controller;
 import com.pm.authservice.dto.JwtAuthenticationDto;
 import com.pm.authservice.dto.RefreshTokenDto;
 import com.pm.authservice.dto.UserCredentialsDto;
-import com.pm.authservice.entity.User;
 import com.pm.authservice.payload.AuthResponse;
 import com.pm.authservice.service.UserService;
+import io.swagger.v3.oas.annotations.headers.Header;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
 
@@ -29,9 +27,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody UserCredentialsDto userCredentialsDto) throws AuthenticationException {
 
-        JwtAuthenticationDto jwtAuthenticationDto = userService.login(userCredentialsDto);
+        AuthResponse authResponse = userService.login(userCredentialsDto);
 
-        return ResponseEntity.ok().body(new AuthResponse("Jwt token and Refresh token are Created",true,jwtAuthenticationDto));
+        return authResponse.isSuccess() ? ResponseEntity.ok().body(authResponse) : ResponseEntity.unprocessableContent().body(authResponse);
 
     }
 
@@ -39,7 +37,10 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@RequestBody UserCredentialsDto userCredentialsDto) throws Exception {
 
 
-            return ResponseEntity.ok().body(userService.creatingUser(userCredentialsDto));
+        AuthResponse success = userService.creatingUser(userCredentialsDto);
+
+
+            return success.isSuccess() ? ResponseEntity.ok().body(success) : ResponseEntity.status(HttpStatus.ALREADY_REPORTED).build();
 
 
     }
@@ -49,6 +50,16 @@ public class AuthController {
 
 
             return ResponseEntity.ok().body(userService.refreshToken(refreshTokenDto));
+
+
+    }
+
+
+    public ResponseEntity<Void> validate(@RequestHeader("Authorization")String header){
+
+
+        return userService.validateToken(header) ?
+                ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
 
     }

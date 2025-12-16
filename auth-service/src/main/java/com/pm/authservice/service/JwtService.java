@@ -6,7 +6,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
 import org.apache.logging.log4j.LogManager;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,11 +20,11 @@ import java.util.Date;
 @Component
 public class JwtService {
 
-    private final Logger logger = (Logger) LogManager.getLogger(JwtService.class);
+    private final org.apache.logging.log4j.Logger logger =  LogManager.getLogger(JwtService.class);
 
     private final Key secretKey;
 
-    public JwtService(@Value("${jwt.secret}") String  secret) {
+    public JwtService(@Value("1333b5b7c1969830f7ac4c13316c4a161b2d1de0615e42d47ab7d8436ab739a4a7ba27b7") String  secret) {
 
         byte[] keyBytes = Base64.getDecoder().decode(secret.getBytes(StandardCharsets.UTF_8));
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
@@ -42,7 +41,6 @@ public class JwtService {
                 .refreshToken(generateRefreshToken(email))
                 .build();
     }
-
 
     public JwtAuthenticationDto refreshBaseToken(String email,String refreshToken){
 
