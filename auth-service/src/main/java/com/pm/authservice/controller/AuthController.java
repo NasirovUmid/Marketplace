@@ -54,7 +54,7 @@ public class AuthController {
 
     }
 
-
+    @PostMapping("/validate")
     public ResponseEntity<Void> validate(@RequestHeader("Authorization")String header){
 
 
