@@ -7,6 +7,7 @@ import com.pm.userservice.entity.User;
 import com.pm.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,8 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> userCreating(@RequestBody UserCreationRequestDTO userCreationRequestDTO){
 
         UserResponseDTO user = userService.userCreating(userCreationRequestDTO);
+
+        if (user == null) ResponseEntity.status(HttpStatus.CONFLICT).body("Try later, the confirmation hasnt come yet ");
 
         return ResponseEntity.ok().body(user);
 

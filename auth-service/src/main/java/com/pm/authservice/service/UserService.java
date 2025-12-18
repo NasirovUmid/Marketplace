@@ -4,10 +4,13 @@ import com.pm.authservice.dto.JwtAuthenticationDto;
 import com.pm.authservice.dto.RefreshTokenDto;
 import com.pm.authservice.dto.UserCredentialsDto;
 import com.pm.authservice.entity.User;
+import com.pm.authservice.entity.UserEvent;
 import com.pm.authservice.enums.Role;
 import com.pm.authservice.enums.TokenType;
+import com.pm.authservice.enums.UserEventType;
 import com.pm.authservice.kafka.KafkaEventProducer;
 import com.pm.authservice.payload.AuthResponse;
+import com.pm.authservice.redis.RefreshTokenService;
 import com.pm.authservice.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -16,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -25,12 +30,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final KafkaEventProducer kafkaEventProducer;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, KafkaEventProducer kafkaEventProducer) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, KafkaEventProducer kafkaEventProducer, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.kafkaEventProducer = kafkaEventProducer;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public AuthResponse login(UserCredentialsDto userCredentialsDto) throws AuthenticationException {
@@ -41,12 +48,17 @@ public class UserService {
 
         if (user == null) return new AuthResponse("Unauthorized",false,userCredentialsDto);
 
+
+        JwtAuthenticationDto jwtAuthenticationDto = jwtService.generateAuthToken(user.get().getEmail());
+
+        refreshTokenService.save(user.get().getId().toString(), jwtAuthenticationDto.getRefreshToken(),2);
+
         }catch (NullPointerException e){
 
             System.out.println(e.getMessage());
         }
-       // return new AuthResponse("Tokens are created",true, jwtService.generateAuthToken(user.get().getEmail()));
-        return new AuthResponse("Tokens are created",true, jwtService.generateAuthToken(user.get().getEmail()));
+
+        return new AuthResponse("Tokens are created",true,userCredentialsDto.getEmail());
 
     }
     public User getUserByEmail(String email){
@@ -61,9 +73,12 @@ public class UserService {
         return user;
     }
 
+    //After Extracting email and finding User by that email I seek for saved RefreshToken by user.id and compare RefreshTokens
+
     public AuthResponse refreshToken(RefreshTokenDto refreshTokenDto) throws Exception {
 
         String refreshToken = refreshTokenDto.getRefreshToken();
+
 
         Claims claims = jwtService.extractClaims(refreshToken);
 
@@ -74,6 +89,12 @@ public class UserService {
     if (refreshToken != null && jwtService.validateJwtToken(refreshToken)) {
 
         User user = findByEmail(jwtService.getEmailFromToken(refreshToken));
+
+        if (!refreshTokenService.exists(user.getId().toString())||
+                !refreshTokenService.getRefreshToken(user.getId().toString()).equals(refreshTokenDto.getRefreshToken()))
+            return new AuthResponse("Fake RefreshToken",false,refreshToken);
+
+
 
         return new AuthResponse("Token is updated", true, jwtService.refreshBaseToken(user.getEmail(), refreshToken));
 
@@ -93,8 +114,11 @@ public class UserService {
                                         .role(Role.ROLE_USER) //default value
                                                 .build();
 
-                                          // Default , if necessary should be changed manually (via update method in controller)
-        userRepository.save(user);
+        // Default , if necessary should be changed manually (via update method in controller)
+        User user1 = userRepository.save(user);
+
+        refreshTokenService.save(user1.getId().toString(),user1.getEmail(),2);
+        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), UserEventType.USER_CREATED, LocalDate.now()));
 
         return new AuthResponse("User is created",true,user.getEmail());
     }
@@ -120,7 +144,7 @@ public class UserService {
 
     public boolean validateToken(String token){
 
-        return token != null && token.startsWith("Bearer ") && jwtService.validateJwtToken(token);
+        return jwtService.validateJwtToken(token);
 
     }
 }

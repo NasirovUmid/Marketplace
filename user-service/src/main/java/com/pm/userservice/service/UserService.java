@@ -14,9 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @Service
 public class UserService {
@@ -40,18 +42,13 @@ public class UserService {
 
     public UserResponseDTO userCreating(UserCreationRequestDTO creationRequestDTO){
 
+            Optional<User> user =  userRepository.findById(creationRequestDTO.getId());
 
-        if (userRepository.findUserByEmail(creationRequestDTO.getEmail())){
+            if (user.isEmpty()) return null;
 
-            throw new EmailAlreadyExistsException("User with same Email exists "+creationRequestDTO.getEmail());
+          userRepository.save(UserMapper.toCreatingModel(user.get()));
 
-        }
-
-         User user = userRepository.save(UserMapper.toCreatingModel(creationRequestDTO));
-
-        if (user.getImageUrl()==null) {user.setImageUrl("C:\\Java\\27\\monke.jpg");}
-
-            return UserMapper.toDTO(user);
+            return UserMapper.toDTO(user.get());
     }
 
     public UserResponseDTO userUpdating(UserUpdateRequestDTO updateRequestDTO){

@@ -23,7 +23,6 @@ public class AuthController {
     }
 
     //created new JwtToken and RefreshToken
-
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody UserCredentialsDto userCredentialsDto) throws AuthenticationException {
 
@@ -36,34 +35,29 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody UserCredentialsDto userCredentialsDto) throws Exception {
 
-
         AuthResponse success = userService.creatingUser(userCredentialsDto);
 
-
             return success.isSuccess() ? ResponseEntity.ok().body(success) : ResponseEntity.status(HttpStatus.ALREADY_REPORTED).build();
-
 
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) throws Exception {
 
-
             return ResponseEntity.ok().body(userService.refreshToken(refreshTokenDto));
-
 
     }
 
     @PostMapping("/validate")
     public ResponseEntity<Void> validate(@RequestHeader("Authorization")String header){
 
-
         return userService.validateToken(header) ?
                 ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-
     }
 
+    // Email cant be changed , new emails are registered but passwords
+    // so in the future i can add update password its simple but probably I can skip it ,just it`s bare useful
 
 
 }

@@ -15,6 +15,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users") // automatically created "user" but its busy so ERROR thats why use @table
 public class User {
 
     @Id

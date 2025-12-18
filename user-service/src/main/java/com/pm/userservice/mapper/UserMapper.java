@@ -24,12 +24,15 @@ public class UserMapper {
     }
 
 
-    public static User toCreatingModel(UserCreationRequestDTO userRequestDTO){
+    public static User toCreatingModel(User user){
 
-        User user = User.builder()
-                .id(userRequestDTO.getId())
-                .email(userRequestDTO.getEmail())
-                .registeredDate(LocalDate.now())
+        User user1 = User.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .bio(user.getBio())
+                .imageUrl(user.getImageUrl())
+                .birthDate(user.getBirthDate())
                 .build();
 
         return user;

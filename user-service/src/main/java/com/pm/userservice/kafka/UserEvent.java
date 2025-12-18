@@ -2,8 +2,9 @@ package com.pm.userservice.kafka;
 
 import com.pm.userservice.enums.UserEventType;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record UserEvent(UUID id,
-                        String email, UserEventType eventType) {
+                        String email, UserEventType eventType, LocalDate localDate) {
 }
