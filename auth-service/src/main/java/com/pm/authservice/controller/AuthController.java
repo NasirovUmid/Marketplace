@@ -6,6 +6,7 @@ import com.pm.authservice.dto.UserCredentialsDto;
 import com.pm.authservice.payload.AuthResponse;
 import com.pm.authservice.service.UserService;
 import io.swagger.v3.oas.annotations.headers.Header;
+import jakarta.annotation.PostConstruct;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +55,13 @@ public class AuthController {
         return userService.validateToken(header) ?
                 ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
+    }
+
+    // I had problem with redis and here we ar , this method for checking redis password
+    @PostConstruct
+    public void checkRedis() {
+        System.out.println("REDIS PASSWORD = " +
+                System.getenv("SPRING_DATA_REDIS_PASSWORD"));
     }
 
     // Email cant be changed , new emails are registered but passwords
