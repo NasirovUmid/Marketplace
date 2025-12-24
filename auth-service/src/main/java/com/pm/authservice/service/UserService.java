@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -118,7 +119,7 @@ public class UserService {
         User user1 = userRepository.save(user);
 
         refreshTokenService.save(user1.getId().toString(),user1.getEmail(),2);
-        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), UserEventType.USER_CREATED, LocalDate.now()));
+        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), UserEventType.USER_CREATED, Instant.now(),"Auth-service"));
 
         return new AuthResponse("User is created",true,user.getEmail());
     }

@@ -26,8 +26,8 @@ public class KafkaEventConsumer {
     public void kafkaConsumeEvent(UserEvent userEvent){
 
 
-        log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}]",
-                userEvent.id(),userEvent.email(),userEvent.eventType(),userEvent.localDate());
+        log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}, From = {}]",
+                userEvent.id(),userEvent.email(),userEvent.eventType(),userEvent.timeOfCreation(),userEvent.address());
 
          userRepository.save(new User(userEvent.id(), null,
                  userEvent.email(), null, null, "C:\\Java\\27\\monke.jpg", null, LocalDate.now()));

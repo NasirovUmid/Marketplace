@@ -32,7 +32,7 @@
         <option name="volumeBindings">
           <list>
             <DockerVolumeBindingImpl>
-              <option name="containerPath" value="/var1/marketplace/user-service/data" />
+              <option name="containerPath" value="/var/marketplace/user-service/data" />
               <option name="hostPath" value="C:\Java\JAVA\REVISION\Microservice\database_volumes\user-service-DataBase" />
             </DockerVolumeBindingImpl>
           </list>
