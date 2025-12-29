@@ -20,15 +20,26 @@ services:
       retries: 10
 
 
+
   logstash:
     image: logstash:8.19.9
     container_name: logstash
     depends_on:
        elasticsearch:
          condition: service_healthy
+       kafka:
+         condition: service_healthy
     volumes:
-      - C:\Java\JAVA\REVISION\Microservice\Marketplace\infrastructure\logstash\logstash.conf:\Users\user\logstash\pipeline\:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+     # - C:\Java\JAVA\REVISION\Microservice\Marketplace\infrastructure\logstash\logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      #- /var/run/docker.sock:/var/run/docker.sock:ro
+    #  - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+     # - ./logstash/logs:/usr/share/logstash/logs
+
+      - ./infrastructure/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./infrastructure/logstash/logs:/usr/share/logstash/input-logs:ro
+      - ./logstash/logs:/usr/share/logstash/output-logs
+
+
     ports:
       - "9600:9600"
 
@@ -37,13 +48,15 @@ services:
     container_name: kafka
     environment:
        - ALLOW_PLAINTEXT_LISTENER=yes
-       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
        - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
        - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+   #    - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
        - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-       - KAFKA_CFG_NODE_ID=1
+       - KAFKA_CFG_NODE_ID=0
        - KAFKA_CFG_PROCESS_ROLES=controller,broker
+       - KAFKA_HEAP_OPTS=-Xms2g -Xms2g
     healthcheck:
         test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server  localhost:9092  --list || exit 1" ]
         interval: 10s
@@ -51,23 +64,28 @@ services:
         retries: 5
     ports:
       - "9092:9092"
-      - "9094:9094"
+#      - "9094:9094"
 
 
 
-  analytics-service:
+  analytic-service:
     build:
-      context: ./analytics-service
+      context: ./analytic-service
     container_name: "analytics-service-Market"
     depends_on:
        elasticsearch:
-          condition: service_healthy
+        condition: service_healthy
        kafka:
          condition: service_healthy
 
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+     # - SPRING_KAFKA_PROPERTIES_SPRING_JSON_USE_TYPE_HEADERS=false
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_PROFILES_ACTIVE=docker
+      #- SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES=*
+      #- SPRING_KAFKA_PROPERTIES_SPRING_JSON_VALUE_DEFAULT_TYPE=com.pm.analyticservice.kafka.UserEvent
+      #- SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER=org.springframework.kafka.support.serializer.JsonDeserializer
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
     ports:
       - "8083:8083"
     logging:
@@ -76,7 +94,85 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  auth-service-database:
+    image: postgres:17.6
+    container_name: auth-service-database
+    environment:
+      - POSTGRES_DB=auth-service-DB
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_USER=postgres
 
+    volumes:
+      - C:\Java\JAVA\REVISION\Microservice\database_volumes\auth-service-DataBase:/var/marketplace/auth-service/data
+
+    ports:
+      - "5001:5432"
+
+
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: "auth-service"
+    depends_on:
+      - auth-service-database
+      - kafka
+    environment:
+      - SPRING_DATA_REDIS_HOST=redis
+      - JWT_SECRET=1333b5b7c1969830f7ac4c13316c4a161b2d1de0615e42d47ab7d8436ab739a4a7ba27b7
+      - SPRING_DATA_REDIS_PASSWORD=java
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-service-database:5432/auth-service-DB
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_SQL_INIT_MODE=always
+      #- SPRING_KAFKA_PRODUCER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES=*
+      #- SPRING_KAFKA_PROPERTIES_SPRING_JSON_USE_TYPE_HEADERS=false
+      #- SPRING_KAFKA_PROPERTIES_SPRING_JSON_VALUE_DEFAULT_TYPE=com.pm.authservice.entity.UserEvent
+      #- SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER= org.springframework.kafka.support.serializer.JsonSerializer
+
+    ports:
+      - "8081:8081"
+
+  redis:
+    image: bitnami/redis
+    container_name: "redis"
+    environment:
+      - REDIS_PASSWORD=java
+    ports:
+      - "6379:6379"
+
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-service-DataBase:5432/users_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
+      - SPRING_SQL_INIT_MODE=always
+    ports:
+      - "8080:8080"
+
+
+  user-service-database:
+    image: postgres:17.6
+    container_name: "user-service-database"
+    environment:
+      - POSTGRES_DB=users_db
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_USER=postgres
+
+    volumes:
+      - C:\Java\JAVA\REVISION\Microservice\database_volumes\user-service-DataBase:/var/marketplace/user-service/data
+
+    ports:
+      - "5000:5432"
 
 volumes:
   es-data:

@@ -20,6 +20,8 @@ public class KafkaEventProducer {
 
             try{
 
+                logger.info("User : = {}",userEvent);
+
                  kafkaTemplate.send("users",userEvent);
 
                 }catch (Exception exception){

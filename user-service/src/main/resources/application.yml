@@ -1,3 +1,4 @@
+
 spring:
   kafka:
     consumer:
@@ -6,5 +7,7 @@ spring:
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.pm.userservice.kafka.UserEvent
         spring.json.trusted.packages: "*"
+  application:
+    name: user-service
 server:
   port: 8080
