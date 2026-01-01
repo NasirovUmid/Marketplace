@@ -32,19 +32,5 @@ public class RedisBookingService {
 
     }
 
-    public void expireBooking(UUID bookingId){
-
-        Booking booking = bookingRepository.findById(bookingId).get();
-
-        if (booking.getBookingStatus() == BookingStatus.PENDING_PAYMENT){
-
-            booking.setBookingStatus(BookingStatus.EXPIRED);
-            kafkaCatalogEventProducer.cancellingTicket(new TicketEvent(booking.getCatalogId(),booking.getTicketId(),booking.getUserId()));
-            bookingRepository.save(booking);
-
-        }
-
-    }
-
 
 }

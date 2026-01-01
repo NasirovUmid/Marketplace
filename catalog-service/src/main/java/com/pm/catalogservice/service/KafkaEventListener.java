@@ -21,6 +21,7 @@ public class KafkaEventListener {
     public void makeAvailable(TicketEvent ticketEvent){
 
         // in case of expiration of payment (redis TTL) or manual cancel by user himself
+        // unsuccessful payment
 
         logger.info(" CANCELLED TICKET = [ {} ]",ticketEvent);
 

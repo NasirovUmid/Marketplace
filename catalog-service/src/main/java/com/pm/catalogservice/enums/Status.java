@@ -2,6 +2,6 @@ package com.pm.catalogservice.enums;
 
 public enum Status {
 
-    ACTIVE, FULL
+    ACTIVE, SOLD_OUT
 
 }

@@ -18,7 +18,7 @@ public class RedisExpirationListener {
 
             String bookingId = key.replace("booking:","");
 
-            bookingService.cancellingBooking(UUID.fromString(bookingId));
+            bookingService.expireBooking(UUID.fromString(bookingId));
 
         }
 

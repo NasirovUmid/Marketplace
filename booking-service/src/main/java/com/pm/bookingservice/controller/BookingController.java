@@ -18,13 +18,12 @@ public class BookingController {
 
     // I dont think here should be full CRUD only creation and deletion . Update only for status and it will depend on Payment-service via Kafka
 
+    @PostMapping("/create")
     public ResponseEntity<Booking> creatingBooking(@RequestBody BookingRequestDto booking){
 
         Booking newBooking = bookingService.creatingBooking(booking);
 
         return newBooking != null ? ResponseEntity.ok().body(newBooking) : ResponseEntity.badRequest().body(newBooking);
-
-        //I will use @mapper and create BookingResponseDto 31.12.2025
 
     }
 
