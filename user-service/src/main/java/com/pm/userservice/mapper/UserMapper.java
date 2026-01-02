@@ -1,11 +1,7 @@
 package com.pm.userservice.mapper;
 
-import com.pm.userservice.dto.UserCreationRequestDTO;
 import com.pm.userservice.dto.UserResponseDTO;
 import com.pm.userservice.entity.User;
-import com.pm.userservice.repository.UserRepository;
-
-import java.time.LocalDate;
 
 public class UserMapper {
 

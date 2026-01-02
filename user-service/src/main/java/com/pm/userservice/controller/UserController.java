@@ -1,18 +1,14 @@
 package com.pm.userservice.controller;
 
-import com.pm.userservice.dto.UserCreationRequestDTO;
 import com.pm.userservice.dto.UserResponseDTO;
 import com.pm.userservice.dto.UserUpdateRequestDTO;
-import com.pm.userservice.entity.User;
 import com.pm.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -35,9 +31,11 @@ public class UserController {
     }
 
 
+    // NO MEANING IN THIS METHOD I THINK , CAUSE USER CREATED ONLY BY AUTH-SERVICE AND WE GET IT VIA KAFKA THERE IS NO BUTTON FOR CREATION IN UI JUST UPDATE
+
     //we need confirmation from kafka that user was created
     //we need not worry if user already exists then auth-service denies itself and request wont reach here
-    @PostMapping
+    /*@PostMapping
     @Operation(summary = "Creating a new User`s profile")
     public ResponseEntity<UserResponseDTO> userCreating(@RequestBody UserCreationRequestDTO userCreationRequestDTO){
 
@@ -47,7 +45,7 @@ public class UserController {
 
         return ResponseEntity.ok().body(user);
 
-    }
+    }*/
 
 
     //we again need confirmation of validation from kafka but it doesnt check its containing so we do it

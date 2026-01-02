@@ -18,12 +18,11 @@ public class UserUpdateRequestDTO {
     @Email
     String email;
 
-    @NotBlank()
+    @NotBlank
     Optional<String> bio;
 
     Optional<Integer> phoneNumber;
 
-    Optional<LocalDate> birthDate;
 
     //its easier to check whether its null and now i expect it to fill profile data completely later after creation
 

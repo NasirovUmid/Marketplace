@@ -62,17 +62,6 @@ public class UserService {
         return new AuthResponse("Tokens are created",true,userCredentialsDto.getEmail());
 
     }
-    public User getUserByEmail(String email){
-
-        User user = null;
-        try {
-            user = userRepository.findUserByEmail(email).orElseThrow(ChangeSetPersister.NotFoundException::new);
-        } catch (ChangeSetPersister.NotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        return user;
-    }
 
     //After Extracting email and finding User by that email I seek for saved RefreshToken by user.id and compare RefreshTokens
 
@@ -119,7 +108,7 @@ public class UserService {
         User user1 = userRepository.save(user);
 
         refreshTokenService.save(user1.getId().toString(),user1.getEmail(),2);
-        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), UserEventType.USER_CREATED, Instant.now(),"Auth-service"));
+        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), UserEventType.USER_CREATED, Instant.now(),"Auth-service",userCredentialsDto.getBirthDate()));
 
         return new AuthResponse("User is created",true,user.getEmail());
     }

@@ -2,6 +2,7 @@ package com.pm.userservice.kafka;
 
 import com.pm.userservice.entity.User;
 import com.pm.userservice.repository.UserRepository;
+import com.pm.userservice.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,10 +14,10 @@ import java.time.LocalDate;
 public class KafkaEventConsumer {
 
     private final Logger log = LoggerFactory.getLogger(KafkaEventConsumer.class);
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public KafkaEventConsumer(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public KafkaEventConsumer(UserService userService) {
+        this.userService = userService;
     }
 
 
@@ -29,8 +30,8 @@ public class KafkaEventConsumer {
         log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}, From = {}]",
                 userEvent.id(),userEvent.email(),userEvent.eventType(),userEvent.timeOfCreation(),userEvent.address());
 
-         userRepository.save(new User(userEvent.id(), null,
-                 userEvent.email(), null, null, "C:\\Java\\27\\monke.jpg", null, LocalDate.now()));
+        userService.userCreating(userEvent);
+
 
          // I gave identical ID from auth-service user.id and email , also default values
 

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -38,9 +39,9 @@ public class User {
     @Column(nullable = false)
     private String imageUrl;
 
-    @Column(nullable = true)
-    private LocalDate birthDate;
+    @Column(nullable = false)
+    private Instant birthDate;
 
     @Column(nullable = false)
-    private LocalDate registeredDate;
+    private Instant registeredDate;
 }

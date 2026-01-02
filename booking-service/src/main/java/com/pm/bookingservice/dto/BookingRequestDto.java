@@ -17,4 +17,6 @@ public class BookingRequestDto {
 
     private UUID catalogId;
 
+    private String catalogName;
+
 }

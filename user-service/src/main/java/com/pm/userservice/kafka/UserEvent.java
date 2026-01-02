@@ -6,5 +6,5 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record UserEvent(UUID id,
-                        String email, UserEventType eventType, Instant timeOfCreation, String address) {
+                        String email, UserEventType eventType, Instant timeOfCreation, String address,Instant birthDate) {
 }

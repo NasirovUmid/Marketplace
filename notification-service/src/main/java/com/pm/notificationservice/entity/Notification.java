@@ -1,6 +1,6 @@
-package com.pm.bookingservice.entity;
+package com.pm.notificationservice.entity;
 
-import com.pm.bookingservice.enums.BookingStatus;
+import com.pm.notificationservice.enums.NotificationEventStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,29 +11,27 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Getter
-@Entity
 @Setter
-public class Booking {
+@Entity
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID bookingId;
+    private UUID notificationId;
+
+    private UUID userId;
 
     private UUID catalogId;
 
     private String catalogName;
 
-    private UUID ticketId;
+    private String userEmail;
 
-    private UUID userId;
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    private BookingStatus bookingStatus;
+    private NotificationEventStatus event;
 
     private Instant createdAt;
-
-    private Instant confirmedAt;
-
-    private Instant cancelledAt;
 
 }

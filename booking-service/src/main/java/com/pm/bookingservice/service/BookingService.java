@@ -28,6 +28,7 @@ public class BookingService {
                 .ticketId(booking.getTicketId())
                 .userId(booking.getUserId())
                 .catalogId(booking.getCatalogId())
+                .catalogName(booking.getCatalogName())
                 .bookingStatus(BookingStatus.PENDING_PAYMENT)
                 .createdAt(Instant.now())
                 .build();

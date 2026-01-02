@@ -69,7 +69,7 @@ public class CatalogService {
                 filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).count();
 
         if (amount<1) {
-            catalog.setStatus(Status.FULL);
+            catalog.setStatus(Status.SOLD_OUT);
             catalog.setNumberOfTickets(0);
         }
         catalog.setNumberOfTickets(amount);

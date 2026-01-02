@@ -16,9 +16,9 @@ public class KafkaEventConsumer {
 
         log.info("User Event received: [ {} ]",userEvent);
 
-       log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}, From = {}]",
+      /* log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}, From = {}]",
                 userEvent.id(),userEvent.email(),userEvent.eventType(),userEvent.timeOfCreation(),userEvent.address());
-
+*/
 
 
     }

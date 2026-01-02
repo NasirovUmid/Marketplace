@@ -42,8 +42,6 @@ public class KafkaCatalogEventProducer {
 
     }
 
-
-
     // I send it -> payment-service
     public void requestPaymentConfirmation(PaymentEvent paymentEvent){
 
