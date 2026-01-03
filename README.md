@@ -5,7 +5,7 @@ Event-driven marketplace backend built with Spring Boot, Kafka , Redis and ELK s
 
 The system is built using microservice architecture and asyncronous communication via kafka 
 
-![Image alt](https://github.com/NasirovUmid/Marketplace/blob/master/Marketplace-architecture-diagram.drawio.png)
+![Image alt](https://github.com/NasirovUmid/Marketplace/blob/master/Marketplace-architecture-diagramm1.drawio.png)
 
 ## Services
 
