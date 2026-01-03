@@ -17,7 +17,7 @@ public class KafkaEventListener {
 
     // I made one method for all of them
 
-    @KafkaListener(topics = "ticket.fail")
+    @KafkaListener(topics = "ticket.fail",groupId = "ticket-service")
     public void makeAvailable(TicketEvent ticketEvent){
 
         // in case of expiration of payment (redis TTL) or manual cancel by user himself
@@ -29,7 +29,7 @@ public class KafkaEventListener {
 
     }
 
-    @KafkaListener(topics = "ticket.success")
+    @KafkaListener(topics = "ticket.success",groupId = "ticket-service")
     public void makeTaken(TicketEvent ticketEvent){
 
         // when booking service receives <- order it sends message event to -> payment service if payment is confirmed ticket will be sold
@@ -40,7 +40,7 @@ public class KafkaEventListener {
 
     }
 
-    @KafkaListener(topics = "ticket.reserve")
+    @KafkaListener(topics = "ticket.reserve",groupId = "ticket-service")
     public void makeReserved(TicketEvent ticketEvent){
 
         // this is for procedural situation bc ticket is in the process of being bought and this wont let others take it

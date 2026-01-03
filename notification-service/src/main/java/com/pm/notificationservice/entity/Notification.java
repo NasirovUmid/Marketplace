@@ -25,6 +25,8 @@ public class Notification {
 
     private String catalogName;
 
+    private UUID bookingId;
+
     private String userEmail;
 
     private String phoneNumber;
@@ -32,6 +34,7 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationEventStatus event;
 
-    private Instant createdAt;
+    // i just wanted to give uncertain name cause here we have /user-creation-time/booking-confirmed/booking-cancelled
+    private Instant time;
 
 }

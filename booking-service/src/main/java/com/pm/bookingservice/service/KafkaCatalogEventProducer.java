@@ -1,5 +1,6 @@
 package com.pm.bookingservice.service;
 
+import com.pm.bookingservice.entity.BookingNotificationEvent;
 import com.pm.bookingservice.entity.PaymentEvent;
 import com.pm.bookingservice.entity.TicketEvent;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ public class KafkaCatalogEventProducer {
 
     private final KafkaTemplate<String,TicketEvent> kafkaTemplate;
     private final KafkaTemplate<String,PaymentEvent> paymentEventKafkaTemplate;
+    private final KafkaTemplate<String,BookingNotificationEvent> bookingNotificationEventKafkaTemplate;
 
     private final Logger logger = LoggerFactory.getLogger(KafkaCatalogEventProducer.class);
 
@@ -48,6 +50,14 @@ public class KafkaCatalogEventProducer {
         logger.info("Payment event = [ {} ]",paymentEvent);
 
         paymentEventKafkaTemplate.send("paymentevent",paymentEvent);
+
+    }
+
+    public void sendingNotification(BookingNotificationEvent bookingNotificationEvent){
+
+        logger.info("notification event = [ {} ]",bookingNotificationEvent);
+
+        bookingNotificationEventKafkaTemplate.send("booking",bookingNotificationEvent);
 
     }
 

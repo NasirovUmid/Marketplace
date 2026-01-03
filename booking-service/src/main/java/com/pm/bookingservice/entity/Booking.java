@@ -27,6 +27,8 @@ public class Booking {
 
     private UUID userId;
 
+    private String email;
+
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
 

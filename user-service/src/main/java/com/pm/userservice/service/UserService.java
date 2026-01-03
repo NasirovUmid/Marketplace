@@ -68,7 +68,7 @@ public class UserService {
         User editedUser = userRepository.save(user);
 
         kafkaNotificationEventProducer.sendingNotificationEvent(
-                new UserNotificationEvent(editedUser.getId(), editedUser.getEmail(), editedUser.getPhoneNumber().toString(), UserEventType.USER_CREATED.name()));
+                new UserNotificationEvent(editedUser.getId(), editedUser.getEmail(), editedUser.getPhoneNumber().toString(), UserEventType.USER_CREATED.name(),editedUser.getRegisteredDate()));
 
 
         return UserMapper.toDTO(editedUser);

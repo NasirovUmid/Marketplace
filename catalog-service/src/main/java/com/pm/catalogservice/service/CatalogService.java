@@ -1,6 +1,7 @@
 package com.pm.catalogservice.service;
 
 import com.pm.catalogservice.entity.Catalog;
+import com.pm.catalogservice.entity.CatalogNotificationEvent;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.Status;
 import com.pm.catalogservice.enums.TicketStatus;
@@ -10,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ public class CatalogService {
 
     private final CatalogRepository catalogRepository;
     private final TicketRepository ticketRepository;
+    private final KafkaEventProducer kafkaEventProducer;
 
     public List<Catalog> getAllCatalogs(){
 
@@ -39,7 +42,13 @@ public class CatalogService {
                 .numberOfTickets(catalog.getNumberOfTickets())
                 .status(Status.ACTIVE)
                 .dateOfEvent(catalog.getDateOfEvent())
+                .createdAt(Instant.now())
                 .build());
+
+
+       kafkaEventProducer.sendCatalogNotification(
+               new CatalogNotificationEvent(newCatalog.getId(),newCatalog.getTitle(),
+                       newCatalog.getCreatorId(),Status.CATALOG_CREATED.name(),newCatalog.getCreatedAt()));
 
 
        //generate available tickets without buyersId

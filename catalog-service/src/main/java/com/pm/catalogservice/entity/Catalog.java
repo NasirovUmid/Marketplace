@@ -4,6 +4,7 @@ import com.pm.catalogservice.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -32,9 +33,8 @@ public class Catalog {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private LocalDate dateOfEvent;
+    private Instant dateOfEvent;
 
-
-
+    private Instant createdAt;
 
 }

@@ -19,4 +19,6 @@ public class BookingRequestDto {
 
     private String catalogName;
 
+    private String email;
+
 }

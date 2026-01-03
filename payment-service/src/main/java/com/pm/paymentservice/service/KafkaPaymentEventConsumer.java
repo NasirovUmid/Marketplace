@@ -11,7 +11,7 @@ public class KafkaPaymentEventConsumer {
 
     private final PaymentService paymentService;
 
-    @KafkaListener(topics = "paymentevent")
+    @KafkaListener(topics = "paymentevent",groupId = "payment-service")
     public void paymentListener(PaymentEvent paymentEvent){
 
     paymentService.creatingPayment(paymentEvent);

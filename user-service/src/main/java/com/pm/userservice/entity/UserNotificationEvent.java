@@ -1,6 +1,7 @@
 package com.pm.userservice.entity;
 
+import java.time.Instant;
 import java.util.UUID;
 
-public record UserNotificationEvent(UUID userId,String userEmail,String phoneNumber,String status) {
+public record UserNotificationEvent(UUID userId, String userEmail, String phoneNumber, String status, Instant time) {
 }

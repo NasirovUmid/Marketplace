@@ -39,7 +39,6 @@ services:
       - ./infrastructure/logstash/logs:/usr/share/logstash/input-logs:ro
       - ./logstash/logs:/usr/share/logstash/output-logs
 
-
     ports:
       - "9600:9600"
 
@@ -148,6 +147,9 @@ services:
     build:
       context: ./user-service
     container_name: user-service
+    depends_on:
+      - user-service-database
+      - kafka
     environment:
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://user-service-DataBase:5432/users_db
@@ -173,6 +175,123 @@ services:
 
     ports:
       - "5000:5432"
+
+  booking-service:
+    build:
+      context: ./booking-service
+    container_name: booking-service
+    depends_on:
+      - booking-service-db
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://booking-service-db:5432/bookings_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PASSWORD=java
+      - SPRING_DATA_REDIS_PORT=6379
+    ports:
+      - "8084:8084"
+
+  booking-service-db:
+    image: postgres:17.6
+    container_name: booking-service-db
+    environment:
+      - POSTGRES_DB=bookings_db
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_USER=postgres
+      - SPRING_DATA_REDIS_HOST=redis
+    volumes:
+      - C:\Java\JAVA\REVISION\Microservice\database_volumes\booking-service-db:/var/marketplace/booking-service/data
+    ports:
+      - "5002:5432"
+
+  payment-service:
+    build:
+      context: ./payment-service
+    container_name: payment-service
+    depends_on:
+      - payment-service-db
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-service-db:5432/payments_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    ports:
+      - "8087:8087"
+
+  payment-service-db:
+    image: postgres:17.6
+    container_name: payment-service-db
+    environment:
+      - POSTGRES_DB=payments_db
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_USER=postgres
+    volumes:
+      - C:\Java\JAVA\REVISION\Microservice\database_volumes\payment-service-db:/var/marketplace/payment-service/data
+    ports:
+      - "5003:5432"
+
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+    container_name: catalog-service
+    depends_on:
+      - catalog-service-db
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://catalog-service-db:5432/catalogs_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    ports:
+      - "8085:8085"
+
+  catalog-service-db:
+    image: postgres:17.6
+    container_name: catalog-service-db
+    environment:
+      - POSTGRES_DB=catalogs_db
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_USER=postgres
+    volumes:
+      - C:\Java\JAVA\REVISION\Microservice\database_volumes\catalog-service-db:/var/marketplace/catalog-service/data
+    ports:
+      - "5004:5432"
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: notification-service
+    depends_on:
+      - notification-service-db
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-service-db:5432/notifications_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    ports:
+      - "8086:8086"
+
+  notification-service-db:
+    image: postgres:17.6
+    container_name: notification-service-db
+    environment:
+      - POSTGRES_DB=notifications_db
+      - POSTGRES_PASSWORD=java
+      - POSTGRES_USER=postgres
+    volumes:
+      - C:\Java\JAVA\REVISION\Microservice\database_volumes\notification-service-db:/var/marketplace/notification-service/data
+    ports:
+      - "5005:5432"
 
 volumes:
   es-data:

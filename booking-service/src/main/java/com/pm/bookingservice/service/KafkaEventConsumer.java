@@ -17,7 +17,7 @@ public class KafkaEventConsumer {
 
     // payment.{enum`s ordinal} 1 - SUCCESS , 2 - FAILED
 
-    @KafkaListener(topics = "payment.1")
+    @KafkaListener(topics = "payment.1",groupId = "payment-status")
     public void successfulPaymentEventListener(PaymentEvent paymentEvent){
 
         try {
@@ -30,7 +30,7 @@ public class KafkaEventConsumer {
 
     }
 
-    @KafkaListener(topics = "payment.2")
+    @KafkaListener(topics = "payment.2",groupId = "payment-status")
     public void failedPaymentEventListener(PaymentEvent paymentEvent){
 
         try {
