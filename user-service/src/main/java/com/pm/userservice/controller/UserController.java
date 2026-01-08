@@ -55,7 +55,7 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> updatingUser(@RequestBody UserUpdateRequestDTO userUpdateRequestDTO){
 
         if (userUpdateRequestDTO.getFullName().isEmpty() && userUpdateRequestDTO.getBio().isEmpty()
-        && userUpdateRequestDTO.getPhoneNumber().isEmpty() && userUpdateRequestDTO.getBirthDate().isEmpty()){
+        && userUpdateRequestDTO.getPhoneNumber().isEmpty()){
             throw new RuntimeException("Request contains no new changes, WTF!");
         }
 

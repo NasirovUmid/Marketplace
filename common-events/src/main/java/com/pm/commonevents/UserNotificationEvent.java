@@ -1,0 +1,7 @@
+package com.pm.commonevents;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record UserNotificationEvent(UUID userId, String userEmail, String phoneNumber, String status, Instant time) {
+}

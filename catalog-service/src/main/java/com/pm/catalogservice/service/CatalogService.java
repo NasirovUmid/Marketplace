@@ -2,13 +2,15 @@ package com.pm.catalogservice.service;
 
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.CatalogNotificationEvent;
+import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.Status;
 import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.catalogservice.repository.CatalogRepository;
 import com.pm.catalogservice.repository.TicketRepository;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -22,6 +24,7 @@ public class CatalogService {
     private final CatalogRepository catalogRepository;
     private final TicketRepository ticketRepository;
     private final KafkaEventProducer kafkaEventProducer;
+    private final Logger logger = LoggerFactory.getLogger(CatalogService.class);
 
     public List<Catalog> getAllCatalogs(){
 
@@ -29,36 +32,44 @@ public class CatalogService {
 
     }
 
-    public boolean creatingCatalog(@NonNull Catalog catalog){
+    public boolean creatingCatalog(CreationRequestDto catalog){
 
-        if (catalogRepository.existsById(catalog.getId()))return false;
+        // IF YOU CHANGED CODE (REMOVED CODE OR ADDED CONFIGURATIONS)ALWAYS REBUILD(docker compose up -d --build {name/or without - all})
+        //OTHERWISE OLD CODE WILL RUIN YOUR LIFE AS YOUR EXES
+    try {
+
+    Catalog newCatalog = catalogRepository.save(Catalog.builder().
+            title(catalog.title()).
+            description(catalog.description())
+            .price(catalog.price())
+            .creatorId(catalog.creatorId())
+            .numberOfTickets(catalog.numberOfTickets())
+            .status(Status.ACTIVE)
+            .dateOfEvent(catalog.dateOfEvents())
+            .createdAt(Instant.now())
+            .build());
 
 
-       Catalog newCatalog =  catalogRepository.save(Catalog.builder().
-                title(catalog.getTitle()).
-                description(catalog.getDescription())
-                .price(catalog.getPrice())
-                .creatorId(catalog.getCreatorId())
-                .numberOfTickets(catalog.getNumberOfTickets())
-                .status(Status.ACTIVE)
-                .dateOfEvent(catalog.getDateOfEvent())
-                .createdAt(Instant.now())
+    kafkaEventProducer.sendCatalogNotification(
+            new CatalogNotificationEvent(newCatalog.getId(), newCatalog.getTitle(),
+                    newCatalog.getCreatorId(), Status.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
+
+
+    //generate available tickets without buyersId
+    for (int i = 1; i <= newCatalog.getNumberOfTickets(); i++) {
+        ticketRepository.save(Ticket.builder()
+                .catalog(newCatalog)
+                .status(TicketStatus.AVAILABLE)
+                .buyerId(null)
                 .build());
+    }
+      }  catch (Exception argumentException){
 
+      argumentException.printStackTrace();
+      logger.error("catalog = [ {} ] , problem = [ {} ]",argumentException,catalog);
+        return false;
 
-       kafkaEventProducer.sendCatalogNotification(
-               new CatalogNotificationEvent(newCatalog.getId(),newCatalog.getTitle(),
-                       newCatalog.getCreatorId(),Status.CATALOG_CREATED.name(),newCatalog.getCreatedAt()));
-
-
-       //generate available tickets without buyersId
-        for (int i = 1; i <= newCatalog.getNumberOfTickets(); i++) {
-            ticketRepository.save(Ticket.builder()
-                    .catalog(newCatalog)
-                    .status(TicketStatus.AVAILABLE)
-                    .buyerId(null)
-                    .build());
-        }
+      }
         return true;
     }
 
@@ -79,7 +90,7 @@ public class CatalogService {
 
         if (amount<1) {
             catalog.setStatus(Status.SOLD_OUT);
-            catalog.setNumberOfTickets(0);
+            catalog.setNumberOfTickets(null);
         }
         catalog.setNumberOfTickets(amount);
 

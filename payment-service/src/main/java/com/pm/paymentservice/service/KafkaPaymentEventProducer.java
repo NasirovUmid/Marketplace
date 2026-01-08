@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,12 +21,19 @@ public class KafkaPaymentEventProducer {
     // I am gonna differ by topic the status of payment -> directing to right method
     public void sendingPaymentEvent(PaymentEvent paymentEvent, PaymentStatus paymentStatus){
 
-        logger.info("Payment details = [ {} ] , Status of payment = [ {} ]",paymentEvent,paymentStatus);
+        logger.info("Payment details = [ {} ] , Status of payment = [ {} ]",paymentEvent,paymentStatus.name());
 
 
                             // Status = 1 - SUCCESS , 2 - FAILED
-        kafkaTemplate.send("payment."+paymentStatus,paymentEvent);
+        //kafkaTemplate.send("payment."+paymentStatus,paymentEvent);
 
+        kafkaTemplate.send(MessageBuilder
+                .withPayload(paymentEvent)
+                .setHeader(KafkaHeaders.TOPIC,"payment."+paymentStatus.name())
+                .setHeader("__TypeId__",paymentEvent.getClass())
+                .build());
+
+        //"com.pm.bookingservice.entity.PaymentEvent"
     }
 
 }

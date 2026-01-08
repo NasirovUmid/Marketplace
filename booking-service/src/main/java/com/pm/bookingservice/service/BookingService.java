@@ -25,17 +25,16 @@ public class BookingService {
 
     public Booking creatingBooking(@NonNull BookingRequestDto booking){
 
-        Booking newBooking = Booking.builder()
-                .ticketId(booking.getTicketId())
-                .userId(booking.getUserId())
-                .email(booking.getEmail())
-                .catalogId(booking.getCatalogId())
-                .catalogName(booking.getCatalogName())
+        Booking booking1 = bookingRepository.save(Booking.builder()
+                .ticketId(booking.ticketId())
+                .userId(booking.userId())
+                .email(booking.email())
+                .catalogId(booking.catalogId())
+                .catalogName(booking.catalogName())
                 .bookingStatus(BookingStatus.PENDING_PAYMENT)
                 .createdAt(Instant.now())
-                .build();
+                .build());
 
-        Booking booking1 = bookingRepository.save(newBooking);
 
          redisBookingService.saveBooking(booking1.getBookingId(),booking1.getTicketId(),booking1.getUserId());
 

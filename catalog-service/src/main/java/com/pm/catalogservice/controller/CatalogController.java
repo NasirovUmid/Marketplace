@@ -1,9 +1,9 @@
 package com.pm.catalogservice.controller;
 
 import com.pm.catalogservice.entity.Catalog;
+import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.service.CatalogService;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,18 +26,19 @@ public class CatalogController {
 
     }
 
-    @GetMapping("getCategory/{id}")
-    public ResponseEntity<Catalog> getNumberOfAvailableTickets(@PathVariable UUID id){
-
-    return ResponseEntity.ok().body(catalogService.getCatalog(id));
-    }
 
     @PostMapping("newCatalog")
-    public ResponseEntity<Catalog> creatingCatalog(@RequestBody Catalog catalog){
+    public ResponseEntity<CreationRequestDto> creatingCatalog(@RequestBody CreationRequestDto catalog){
 
         boolean isSuccess = catalogService.creatingCatalog(catalog);
 
         return isSuccess ? ResponseEntity.ok().body(catalog) : ResponseEntity.status(HttpStatus.valueOf("already exists maybe")).build();
+
+    }
+    @GetMapping("getCategory/{id}")
+    public ResponseEntity<Catalog> getNumberOfAvailableTickets(@PathVariable UUID id){
+
+    return ResponseEntity.ok().body(catalogService.getCatalog(id));
 
     }
 

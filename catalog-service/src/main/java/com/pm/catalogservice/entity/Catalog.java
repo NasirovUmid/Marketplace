@@ -24,11 +24,11 @@ public class Catalog {
 
     private String description;
 
-    private double price;
+    private Double price;
 
     private UUID creatorId;
 
-    private long numberOfTickets;
+    private Long numberOfTickets;
 
     @Enumerated(EnumType.STRING)
     private Status status;

@@ -17,11 +17,14 @@ public class KafkaEventConsumer {
 
     // payment.{enum`s ordinal} 1 - SUCCESS , 2 - FAILED
 
-    @KafkaListener(topics = "payment.1",groupId = "payment-status")
+    @KafkaListener(topics = "payment.SUCCEEDED",groupId = "payment-status")
     public void successfulPaymentEventListener(PaymentEvent paymentEvent){
 
         try {
+
+            logger.info("Successful payment = [ {} ]",paymentEvent);
             bookingService.confirmingBooking(paymentEvent,true);
+
         } catch (ChangeSetPersister.NotFoundException e) {
 
             logger.error("successful payment   --  Not found = [ {} ]",paymentEvent);
@@ -30,11 +33,14 @@ public class KafkaEventConsumer {
 
     }
 
-    @KafkaListener(topics = "payment.2",groupId = "payment-status")
+    @KafkaListener(topics = "payment.FAILED",groupId = "payment-status")
     public void failedPaymentEventListener(PaymentEvent paymentEvent){
 
         try {
+
+            logger.info("Failed payment = [ {} ]",paymentEvent);
             bookingService.confirmingBooking(paymentEvent,false);
+
         } catch (ChangeSetPersister.NotFoundException e) {
 
             logger.error("failed payment    --  Not found = [ {} ]",paymentEvent);

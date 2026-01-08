@@ -3,6 +3,7 @@ package com.pm.userservice.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -15,7 +16,7 @@ public class UserResponseDTO {
 
     private String bio;
 
-    private LocalDate birthDate;
+    private Instant birthDate;
 
-    private LocalDate registeredDate;
+    private Instant registeredDate;
 }

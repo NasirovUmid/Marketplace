@@ -111,6 +111,7 @@ services:
   auth-service:
     build:
       context: ./auth-service
+      dockerfile: Dockerfile
     container_name: "auth-service"
     depends_on:
       - auth-service-database
@@ -146,6 +147,7 @@ services:
   user-service:
     build:
       context: ./user-service
+      dockerfile: Dockerfile
     container_name: user-service
     depends_on:
       - user-service-database
@@ -179,11 +181,13 @@ services:
   booking-service:
     build:
       context: ./booking-service
+      dockerfile: DockerFile
     container_name: booking-service
     depends_on:
       - booking-service-db
       - kafka
     environment:
+     # - SERVER_PORT=8084
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://booking-service-db:5432/bookings_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -192,6 +196,7 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PASSWORD=java
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
     ports:
       - "8084:8084"
 
@@ -210,19 +215,23 @@ services:
 
   payment-service:
     build:
-      context: ./payment-service
+      context: .
+      dockerfile: payment-service/Dockerfile
     container_name: payment-service
     depends_on:
       - payment-service-db
       - kafka
     environment:
+    #  - SERVER_PORT=8087
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-service-db:5432/payments_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
     ports:
       - "8087:8087"
+
 
   payment-service-db:
     image: postgres:17.6
@@ -240,18 +249,21 @@ services:
   catalog-service:
     build:
       context: ./catalog-service
+      dockerfile: Dockerfile
     container_name: catalog-service
     depends_on:
       - catalog-service-db
       - kafka
+    ports:
+      - "8085:8085"
     environment:
+      - SERVER_PORT=8085
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://catalog-service-db:5432/catalogs_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    ports:
-      - "8085:8085"
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
 
   catalog-service-db:
     image: postgres:17.6
@@ -267,17 +279,20 @@ services:
 
   notification-service:
     build:
-      context: ./notification-service
+      context: .
+      dockerfile: Dockerfile
     container_name: notification-service
     depends_on:
       - notification-service-db
       - kafka
     environment:
+      - SERVER_PORT=8086
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-service-db:5432/notifications_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
     ports:
       - "8086:8086"
 

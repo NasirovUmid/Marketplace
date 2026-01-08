@@ -5,14 +5,6 @@ import lombok.Getter;
 
 import java.util.UUID;
 
-@Getter
-public class PaymentRequestDto {
-
-    private UUID ticketId;
-
-    private UUID buyerId;
-
-    private boolean isPaid;
-
+public record PaymentRequestDto(UUID ticketId,UUID buyerId,Boolean isPaid) {
 
 }

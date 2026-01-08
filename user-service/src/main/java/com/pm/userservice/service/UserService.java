@@ -7,14 +7,12 @@ import com.pm.userservice.entity.UserNotificationEvent;
 import com.pm.userservice.enums.UserEventType;
 import com.pm.userservice.kafka.KafkaEventConsumer;
 import com.pm.userservice.kafka.KafkaNotificationEventProducer;
-import com.pm.userservice.kafka.UserEvent;
+import com.pm.userservice.entity.UserEvent;
 import com.pm.userservice.mapper.UserMapper;
 import com.pm.userservice.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
