@@ -1,6 +1,6 @@
 package com.pm.userservice.kafka;
 
-import com.pm.userservice.entity.UserNotificationEvent;
+import com.pm.commonevents.UserNotificationEvent;
 import lombok.AllArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

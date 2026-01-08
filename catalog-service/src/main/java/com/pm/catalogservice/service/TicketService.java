@@ -2,7 +2,7 @@ package com.pm.catalogservice.service;
 
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
-import com.pm.catalogservice.enums.TicketStatus;
+import com.pm.commonevents.enums.TicketStatus;
 import com.pm.catalogservice.repository.CatalogRepository;
 import com.pm.catalogservice.repository.TicketRepository;
 import lombok.AllArgsConstructor;

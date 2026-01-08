@@ -1,11 +1,12 @@
 package com.pm.catalogservice.service;
 
 import com.pm.catalogservice.entity.Catalog;
-import com.pm.catalogservice.entity.CatalogNotificationEvent;
+import com.pm.commonevents.CatalogNotificationEvent;
 import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.Status;
-import com.pm.catalogservice.enums.TicketStatus;
+import com.pm.commonevents.enums.CatalogStatus;
+import com.pm.commonevents.enums.TicketStatus;
 import com.pm.catalogservice.repository.CatalogRepository;
 import com.pm.catalogservice.repository.TicketRepository;
 import lombok.AllArgsConstructor;
@@ -36,6 +37,7 @@ public class CatalogService {
 
         // IF YOU CHANGED CODE (REMOVED CODE OR ADDED CONFIGURATIONS)ALWAYS REBUILD(docker compose up -d --build {name/or without - all})
         //OTHERWISE OLD CODE WILL RUIN YOUR LIFE AS YOUR EXES
+
     try {
 
     Catalog newCatalog = catalogRepository.save(Catalog.builder().
@@ -44,7 +46,7 @@ public class CatalogService {
             .price(catalog.price())
             .creatorId(catalog.creatorId())
             .numberOfTickets(catalog.numberOfTickets())
-            .status(Status.ACTIVE)
+            .status(CatalogStatus.ACTIVE)
             .dateOfEvent(catalog.dateOfEvents())
             .createdAt(Instant.now())
             .build());
@@ -52,7 +54,7 @@ public class CatalogService {
 
     kafkaEventProducer.sendCatalogNotification(
             new CatalogNotificationEvent(newCatalog.getId(), newCatalog.getTitle(),
-                    newCatalog.getCreatorId(), Status.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
+                    newCatalog.getCreatorId(), CatalogStatus.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
 
 
     //generate available tickets without buyersId
@@ -89,7 +91,7 @@ public class CatalogService {
                 filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).count();
 
         if (amount<1) {
-            catalog.setStatus(Status.SOLD_OUT);
+            catalog.setStatus(CatalogStatus.SOLD_OUT);
             catalog.setNumberOfTickets(null);
         }
         catalog.setNumberOfTickets(amount);

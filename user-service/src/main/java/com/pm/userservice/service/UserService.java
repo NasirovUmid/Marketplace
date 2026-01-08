@@ -3,11 +3,10 @@ package com.pm.userservice.service;
 import com.pm.userservice.dto.UserResponseDTO;
 import com.pm.userservice.dto.UserUpdateRequestDTO;
 import com.pm.userservice.entity.User;
-import com.pm.userservice.entity.UserNotificationEvent;
-import com.pm.userservice.enums.UserEventType;
-import com.pm.userservice.kafka.KafkaEventConsumer;
+import com.pm.commonevents.UserNotificationEvent;
+import com.pm.commonevents.enums.UserEventType;
 import com.pm.userservice.kafka.KafkaNotificationEventProducer;
-import com.pm.userservice.entity.UserEvent;
+import com.pm.commonevents.UserEvent;
 import com.pm.userservice.mapper.UserMapper;
 import com.pm.userservice.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -19,13 +18,11 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final KafkaEventConsumer kafkaEventConsumer;
     private final KafkaNotificationEventProducer kafkaNotificationEventProducer;
 
 
-    public UserService(UserRepository userRepository, KafkaEventConsumer kafkaEventConsumer, KafkaNotificationEventProducer kafkaNotificationEventProducer) {
+    public UserService(UserRepository userRepository, KafkaNotificationEventProducer kafkaNotificationEventProducer) {
         this.userRepository = userRepository;
-        this.kafkaEventConsumer = kafkaEventConsumer;
         this.kafkaNotificationEventProducer = kafkaNotificationEventProducer;
     }
 

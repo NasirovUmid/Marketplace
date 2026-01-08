@@ -1,11 +1,11 @@
 package com.pm.catalogservice.entity;
 
-import com.pm.catalogservice.enums.Status;
+
+import com.pm.commonevents.enums.CatalogStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -31,7 +31,7 @@ public class Catalog {
     private Long numberOfTickets;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private CatalogStatus status;
 
     private Instant dateOfEvent;
 

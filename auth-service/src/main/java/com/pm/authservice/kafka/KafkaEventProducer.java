@@ -1,6 +1,6 @@
 package com.pm.authservice.kafka;
 
-import com.pm.authservice.entity.UserEvent;
+import com.pm.commonevents.UserEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;

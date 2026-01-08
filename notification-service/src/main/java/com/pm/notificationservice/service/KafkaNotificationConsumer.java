@@ -1,8 +1,8 @@
 package com.pm.notificationservice.service;
 
-import com.pm.notificationservice.entity.BookingNotificationEvent;
-import com.pm.notificationservice.entity.CatalogNotificationEvent;
-import com.pm.notificationservice.entity.UserNotificationEvent;
+import com.pm.commonevents.BookingNotificationEvent;
+import com.pm.commonevents.CatalogNotificationEvent;
+import com.pm.commonevents.UserNotificationEvent;
 import lombok.AllArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;

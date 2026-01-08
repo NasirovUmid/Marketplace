@@ -1,6 +1,6 @@
 package com.pm.bookingservice.service;
 
-import com.pm.bookingservice.entity.PaymentEvent;
+import com.pm.commonevents.PaymentEvent;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

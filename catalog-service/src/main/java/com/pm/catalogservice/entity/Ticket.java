@@ -1,6 +1,6 @@
 package com.pm.catalogservice.entity;
 
-import com.pm.catalogservice.enums.TicketStatus;
+import com.pm.commonevents.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

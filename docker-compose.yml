@@ -67,31 +67,32 @@ services:
 
 
 
-  analytic-service:
-    build:
-      context: ./analytic-service
-    container_name: "analytics-service-Market"
-    depends_on:
-       elasticsearch:
-        condition: service_healthy
-       kafka:
-         condition: service_healthy
+ # analytic-service:
+  #  build:
+   #   context: .
+    #  dockerfile: analytic-service/Dockerfile
+    #container_name: "analytics-service"
+    #depends_on:
+     #  elasticsearch:
+       # condition: service_healthy
+      # kafka:
+        # condition: service_healthy
 
-    environment:
+  #  environment:
      # - SPRING_KAFKA_PROPERTIES_SPRING_JSON_USE_TYPE_HEADERS=false
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_PROFILES_ACTIVE=docker
+    #  - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  #    - SPRING_PROFILES_ACTIVE=docker
       #- SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES=*
       #- SPRING_KAFKA_PROPERTIES_SPRING_JSON_VALUE_DEFAULT_TYPE=com.pm.analyticservice.kafka.UserEvent
       #- SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER=org.springframework.kafka.support.serializer.JsonDeserializer
-      - SPRING_MAIN_LOG_LEVEL=DEBUG
-    ports:
-      - "8083:8083"
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  #    - SPRING_MAIN_LOG_LEVEL=DEBUG
+  #  ports:
+  #    - "8083:8083"
+  #  logging:
+  #    driver: json-file
+   #   options:
+   #     max-size: "10m"
+    #    max-file: "3"
 
   auth-service-database:
     image: postgres:17.6
@@ -110,8 +111,8 @@ services:
 
   auth-service:
     build:
-      context: ./auth-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: auth-service/Dockerfile
     container_name: "auth-service"
     depends_on:
       - auth-service-database
@@ -146,8 +147,8 @@ services:
 
   user-service:
     build:
-      context: ./user-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: user-service/Dockerfile
     container_name: user-service
     depends_on:
       - user-service-database
@@ -180,12 +181,13 @@ services:
 
   booking-service:
     build:
-      context: ./booking-service
-      dockerfile: DockerFile
+      context: .
+      dockerfile: booking-service/Dockerfile
     container_name: booking-service
     depends_on:
       - booking-service-db
       - kafka
+      - redis
     environment:
      # - SERVER_PORT=8084
       - SPRING_DATASOURCE_PASSWORD=java
@@ -248,8 +250,8 @@ services:
 
   catalog-service:
     build:
-      context: ./catalog-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: catalog-service/Dockerfile
     container_name: catalog-service
     depends_on:
       - catalog-service-db
@@ -280,7 +282,7 @@ services:
   notification-service:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: notification-service/Dockerfile
     container_name: notification-service
     depends_on:
       - notification-service-db

@@ -1,7 +1,16 @@
 package com.pm.notificationservice.enums;
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum NotificationEventStatus {
 
-    USER_CREATED,BOOKING_SUCCESSFUL,BOOKING_CANCELED,CATALOG_CREATED
+    USER_CREATED,BOOKING_SUCCESSFUL,BOOKING_CANCELED,CATALOG_CREATED;
+
+    public static List<NotificationEventStatus> getNotificationEventStatuses(){
+
+        return Arrays.asList(NotificationEventStatus.values());
+
+    }
 
 }

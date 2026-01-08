@@ -2,7 +2,7 @@ package com.pm.paymentservice.service;
 
 import com.pm.paymentservice.dto.PaymentRequestDto;
 import com.pm.paymentservice.entity.Payment;
-import com.pm.paymentservice.entity.PaymentEvent;
+import com.pm.commonevents.PaymentEvent;
 import com.pm.paymentservice.enums.PaymentStatus;
 import com.pm.paymentservice.repository.PaymentRepository;
 import lombok.AllArgsConstructor;

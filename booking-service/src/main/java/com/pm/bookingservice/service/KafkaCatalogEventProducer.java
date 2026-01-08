@@ -1,8 +1,8 @@
 package com.pm.bookingservice.service;
 
-import com.pm.bookingservice.entity.BookingNotificationEvent;
-import com.pm.bookingservice.entity.PaymentEvent;
-import com.pm.bookingservice.entity.TicketEvent;
+import com.pm.commonevents.BookingNotificationEvent;
+import com.pm.commonevents.PaymentEvent;
+import com.pm.commonevents.TicketEvent;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.common.header.Headers;
 import org.slf4j.Logger;
@@ -29,12 +29,12 @@ public class KafkaCatalogEventProducer {
 
         logger.info("Ticket event ( Cancel ) = [ {} ]",ticketEvent);
 
-        kafkaTemplate.send(MessageBuilder.withPayload(ticketEvent)
+      /*  kafkaTemplate.send(MessageBuilder.withPayload(ticketEvent)
                 .setHeader(KafkaHeaders.TOPIC,"ticket.success")
                 .setHeader("__TypeId__",ticketEvent.getClass())
-                .build());
-
-       // "com.pm.commonevents.TicketEvent"
+                .build()); НАХ ТЕПЕРЬ НУЖЕН
+*/
+       //  "com.pm.commonevents.TicketEvent"
 
         //kafkaTemplate.send("ticket.fail",ticketEvent);
 
@@ -43,29 +43,31 @@ public class KafkaCatalogEventProducer {
     public void reservingTicket(TicketEvent ticketEvent){
 
         logger.info("Ticket event ( Reserve ) = [ {} ]",ticketEvent);
+        kafkaTemplate.send("ticket.reserve",ticketEvent);
 
+/*
         kafkaTemplate.send(MessageBuilder
                 .withPayload(ticketEvent)
                 .setHeader(KafkaHeaders.TOPIC,"ticket.reserve")
                 .setHeader("__TypeId__",ticketEvent.getClass())
                 .build());
+*/
 
-
-       // kafkaTemplate.send("ticket.reserve",ticketEvent);
 
     }
 
     public void sellingTicket(TicketEvent ticketEvent){
 
         logger.info("Ticket event ( Sell ) = [ {} ]",ticketEvent);
+        kafkaTemplate.send("ticket.success",ticketEvent);
 
+/*
         kafkaTemplate.send(MessageBuilder.withPayload(ticketEvent)
                 .setHeader(KafkaHeaders.TOPIC,"ticket.success")
                 .setHeader("__TypeId__",ticketEvent.getClass())
                 .build());
         //"com.pm.commonevents.TicketEvent"
-
-       // kafkaTemplate.send("ticket.success",ticketEvent);
+*/
 
     }
 
@@ -74,13 +76,15 @@ public class KafkaCatalogEventProducer {
 
         logger.info("Payment event = [ {} ]",paymentEvent);
 
+        paymentEventKafkaTemplate.send("paymentevent",paymentEvent);
+        /*
         paymentEventKafkaTemplate.send(MessageBuilder
                 .withPayload(paymentEvent)
                 .setHeader(KafkaHeaders.TOPIC,"paymentevent")
-                .setHeader("__TypeId__",paymentEvent.getClass())
+                .setHeader("__TypeId__","com.pm.commonevents.PaymentEvent")
                 .build());
         //"com.pm.commonevents.PaymentEvent"
-        //paymentEventKafkaTemplate.send("paymentevent",paymentEvent);
+        */
 
 
     }
@@ -89,12 +93,15 @@ public class KafkaCatalogEventProducer {
 
         logger.info("notification event = [ {} ]",bookingNotificationEvent);
 
+        bookingNotificationEventKafkaTemplate.send("booking",bookingNotificationEvent);
+
+        /*
         bookingNotificationEventKafkaTemplate.send(MessageBuilder
                 .withPayload(bookingNotificationEvent)
                 .setHeader(KafkaHeaders.TOPIC,"booking")
                 .setHeader("__TypeId__",bookingNotificationEvent.getClass())
                 .build());
-
+*/
     }
 
 }

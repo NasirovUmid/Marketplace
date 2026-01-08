@@ -2,9 +2,9 @@ package com.pm.bookingservice.service;
 
 import com.pm.bookingservice.dto.BookingRequestDto;
 import com.pm.bookingservice.entity.Booking;
-import com.pm.bookingservice.entity.BookingNotificationEvent;
-import com.pm.bookingservice.entity.PaymentEvent;
-import com.pm.bookingservice.entity.TicketEvent;
+import com.pm.commonevents.BookingNotificationEvent;
+import com.pm.commonevents.PaymentEvent;
+import com.pm.commonevents.TicketEvent;
 import com.pm.bookingservice.enums.BookingStatus;
 import com.pm.bookingservice.repository.BookingRepository;
 import lombok.AllArgsConstructor;
@@ -61,8 +61,8 @@ public class BookingService {
             bookingRepository.save(booking);
 
             kafkaCatalogEventProducer.sendingNotification(
-                    new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),
-                            booking.getCatalogName(),BookingStatus.EXPIRED.name(),booking.getEmail(),booking.getCancelledAt()));
+                    new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),booking.getEmail(),
+                            booking.getCatalogName(),BookingStatus.EXPIRED.name(),booking.getCancelledAt()));
 
         }
 
@@ -77,8 +77,8 @@ public class BookingService {
         redisBookingService.deleteBooking(booking.getBookingId());
         kafkaCatalogEventProducer.cancellingTicket(new TicketEvent(booking.getCatalogId(),booking.getTicketId(),booking.getUserId()));
         kafkaCatalogEventProducer.sendingNotification(
-                new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),
-                        booking.getCatalogName(),BookingStatus.CANCELLED.name(),booking.getEmail(),booking.getCancelledAt()));
+                new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),booking.getEmail(),
+                        booking.getCatalogName(),BookingStatus.CANCELLED.name(),booking.getCancelledAt()));
 
 
         redisBookingService.deleteBooking(bookingId);
@@ -102,8 +102,8 @@ public class BookingService {
             kafkaCatalogEventProducer.sellingTicket(new TicketEvent(booking.getCatalogId(),booking.getTicketId(),booking.getUserId()));
 
             kafkaCatalogEventProducer.sendingNotification(
-                    new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),
-                            booking.getCatalogName(), booking.getBookingStatus().name(), booking.getEmail(), booking.getConfirmedAt()));
+                    new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),booking.getEmail(),
+                            booking.getCatalogName(), booking.getBookingStatus().name(), booking.getConfirmedAt()));
 
 
         }else {
@@ -116,7 +116,7 @@ public class BookingService {
 
             kafkaCatalogEventProducer.sendingNotification(
                     new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),
-                            booking.getUserId(), booking.getCatalogName(), booking.getBookingStatus().name(), booking.getEmail(), booking.getCancelledAt()));
+                            booking.getUserId(),booking.getEmail() ,booking.getCatalogName(), booking.getBookingStatus().name(), booking.getCancelledAt()));
 
         }
     }

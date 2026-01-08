@@ -1,5 +1,7 @@
 C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\BookingNotificationEvent.java
 C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\CatalogNotificationEvent.java
+C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\enums\CatalogStatus.java
+C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\enums\TicketStatus.java
 C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\enums\UserEventType.java
 C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\PaymentEvent.java
 C:\Java\JAVA\REVISION\Microservice\Marketplace\common-events\src\main\java\com\pm\commonevents\TicketEvent.java

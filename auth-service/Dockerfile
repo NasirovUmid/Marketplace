@@ -5,8 +5,6 @@ WORKDIR /build
 COPY . .
 
 
-
-
 RUN mvn clean package -pl auth-service -am -DskipTests
 
 

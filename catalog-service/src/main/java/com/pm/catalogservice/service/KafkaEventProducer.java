@@ -1,6 +1,6 @@
 package com.pm.catalogservice.service;
 
-import com.pm.catalogservice.entity.CatalogNotificationEvent;
+import com.pm.commonevents.CatalogNotificationEvent;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

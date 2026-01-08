@@ -1,6 +1,6 @@
 package com.pm.paymentservice.service;
 
-import com.pm.paymentservice.entity.PaymentEvent;
+import com.pm.commonevents.PaymentEvent;
 import com.pm.paymentservice.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -25,14 +25,16 @@ public class KafkaPaymentEventProducer {
 
 
                             // Status = 1 - SUCCESS , 2 - FAILED
-        //kafkaTemplate.send("payment."+paymentStatus,paymentEvent);
+        kafkaTemplate.send("payment."+paymentStatus,paymentEvent);
 
+/*
         kafkaTemplate.send(MessageBuilder
                 .withPayload(paymentEvent)
                 .setHeader(KafkaHeaders.TOPIC,"payment."+paymentStatus.name())
-                .setHeader("__TypeId__",paymentEvent.getClass())
+                .setHeader("__TypeId__","com.pm.commonevents.PaymentEvent")
                 .build());
-
+*/
+        //paymentEvent.getClass()
         //"com.pm.bookingservice.entity.PaymentEvent"
     }
 

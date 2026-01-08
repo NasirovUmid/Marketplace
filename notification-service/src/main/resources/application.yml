@@ -13,6 +13,8 @@ spring:
           auth: true
           starttls:
             enabled: true
+            required: true
+
 
 
 
@@ -21,6 +23,6 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.use.type.headers: false
-        #spring.json.value.default.type: com.pm.nostificationservice.entity.
+        spring.json.use.type.headers: true
+       #spring.json.value.default.type: com.pm.nostificationservice.entity.
         spring.json.trusted.packages: "*"

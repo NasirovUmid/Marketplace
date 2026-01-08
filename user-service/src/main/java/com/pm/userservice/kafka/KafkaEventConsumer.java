@@ -1,6 +1,6 @@
 package com.pm.userservice.kafka;
 
-import com.pm.userservice.entity.UserEvent;
+import com.pm.commonevents.UserEvent;
 import com.pm.userservice.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

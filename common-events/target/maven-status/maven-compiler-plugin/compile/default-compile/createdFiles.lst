@@ -1,7 +1,9 @@
 com\pm\commonevents\UserNotificationEvent.class
 com\pm\commonevents\BookingNotificationEvent.class
 com\pm\commonevents\UserEvent.class
+com\pm\commonevents\enums\TicketStatus.class
 com\pm\commonevents\TicketEvent.class
+com\pm\commonevents\enums\CatalogStatus.class
 com\pm\commonevents\PaymentEvent.class
 com\pm\commonevents\enums\UserEventType.class
 com\pm\commonevents\CatalogNotificationEvent.class

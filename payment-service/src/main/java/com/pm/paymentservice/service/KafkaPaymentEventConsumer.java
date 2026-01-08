@@ -1,6 +1,6 @@
 package com.pm.paymentservice.service;
 
-import com.pm.paymentservice.entity.PaymentEvent;
+import com.pm.commonevents.PaymentEvent;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
