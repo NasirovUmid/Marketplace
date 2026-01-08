@@ -5,7 +5,7 @@ import java.util.List;
 
 public enum NotificationEventStatus {
 
-    USER_CREATED,BOOKING_SUCCESSFUL,BOOKING_CANCELED,CATALOG_CREATED;
+    USER_CREATED,BOOKING_CONFIRMED,BOOKING_CANCELED,CATALOG_CREATED;
 
     public static List<NotificationEventStatus> getNotificationEventStatuses(){
 

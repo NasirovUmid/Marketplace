@@ -1,7 +1,6 @@
 package com.pm.bookingservice.service;
 
 import com.pm.bookingservice.entity.Booking;
-import com.pm.bookingservice.entity.TicketEvent;
 import com.pm.bookingservice.enums.BookingStatus;
 import com.pm.bookingservice.repository.BookingRepository;
 import lombok.AllArgsConstructor;

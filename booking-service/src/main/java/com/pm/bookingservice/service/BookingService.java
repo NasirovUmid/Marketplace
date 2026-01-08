@@ -73,12 +73,12 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId).get();
 
         booking.setCancelledAt(Instant.now());
-        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setBookingStatus(BookingStatus.BOOKING_CANCELLED);
         redisBookingService.deleteBooking(booking.getBookingId());
         kafkaCatalogEventProducer.cancellingTicket(new TicketEvent(booking.getCatalogId(),booking.getTicketId(),booking.getUserId()));
         kafkaCatalogEventProducer.sendingNotification(
                 new BookingNotificationEvent(booking.getBookingId(),booking.getCatalogId(),booking.getUserId(),booking.getEmail(),
-                        booking.getCatalogName(),BookingStatus.CANCELLED.name(),booking.getCancelledAt()));
+                        booking.getCatalogName(),BookingStatus.BOOKING_CANCELLED.name(),booking.getCancelledAt()));
 
 
         redisBookingService.deleteBooking(bookingId);
@@ -95,7 +95,7 @@ public class BookingService {
 
         if (isSuccess){
 
-            booking.setBookingStatus(BookingStatus.CONFIRMED);
+            booking.setBookingStatus(BookingStatus.BOOKING_CONFIRMED);
             booking.setConfirmedAt(Instant.now());
             redisBookingService.deleteBooking(booking.getBookingId());
 
@@ -108,7 +108,7 @@ public class BookingService {
 
         }else {
 
-            booking.setBookingStatus(BookingStatus.CANCELLED);
+            booking.setBookingStatus(BookingStatus.BOOKING_CANCELLED);
             booking.setCancelledAt(Instant.now());
             redisBookingService.deleteBooking(booking.getBookingId());
 

@@ -11,14 +11,11 @@ import java.util.Optional;
 @Data
 public class UserUpdateRequestDTO {
 
-    @Size(min = 5,max = 50, message ="FullName has to be between these pointers!" )
+
     Optional<String> fullName;
 
-    @NotBlank(message = "Email is required")
-    @Email
     String email;
 
-    @NotBlank
     Optional<String> bio;
 
     Optional<Integer> phoneNumber;

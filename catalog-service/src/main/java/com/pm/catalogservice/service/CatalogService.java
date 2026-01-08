@@ -4,7 +4,6 @@ import com.pm.catalogservice.entity.Catalog;
 import com.pm.commonevents.CatalogNotificationEvent;
 import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.entity.Ticket;
-import com.pm.catalogservice.enums.Status;
 import com.pm.commonevents.enums.CatalogStatus;
 import com.pm.commonevents.enums.TicketStatus;
 import com.pm.catalogservice.repository.CatalogRepository;
