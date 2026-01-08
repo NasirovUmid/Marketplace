@@ -59,4 +59,6 @@ Real payment providers replaced with mock logic to focus on event-driven archite
 Full end-to-end testing is a work in progress
 End-to-end flow is partially tested; full integration testing is planned as a next step
 
+Currently working on introducing a shared `common-events` module to enable event-driven chain flow and consistent communication across microservices
+
 In the next iteration I plan to add contract tests and use analytics data to verify cross-service consistency
