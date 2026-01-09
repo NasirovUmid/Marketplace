@@ -8,20 +8,15 @@ import com.pm.commonevents.UserEvent;
 import com.pm.authservice.enums.Role;
 import com.pm.authservice.enums.TokenType;
 import com.pm.commonevents.enums.UserEventType;
-import com.pm.authservice.kafka.KafkaEventProducer;
 import com.pm.authservice.payload.AuthResponse;
 import com.pm.authservice.redis.RefreshTokenService;
 import com.pm.authservice.repository.UserRepository;
 import io.jsonwebtoken.Claims;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -69,7 +64,6 @@ public class UserService {
 
         String refreshToken = refreshTokenDto.getRefreshToken();
 
-
         Claims claims = jwtService.extractClaims(refreshToken);
 
     if (claims.get("type") != TokenType.REFRESH)
@@ -108,12 +102,12 @@ public class UserService {
         User user1 = userRepository.save(user);
 
         refreshTokenService.save(user1.getId().toString(),user1.getEmail(),2);
-        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), UserEventType.USER_CREATED, Instant.now(),"Auth-service",userCredentialsDto.getBirthDate()));
+        kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), userCredentialsDto.getPhoneNumber(), UserEventType.USER_CREATED, Instant.now(),"Auth-service",userCredentialsDto.getBirthDate()));
 
         return new AuthResponse("User is created",true,user.getEmail());
     }
 
-    private Optional<User> findByCredentials(UserCredentialsDto userCredentialsDto) throws AuthenticationException {
+    private Optional<User> findByCredentials(UserCredentialsDto userCredentialsDto)  {
 
     Optional<User> user = userRepository.findUserByEmail(userCredentialsDto.getEmail());
     if (user.isPresent()){
@@ -125,7 +119,7 @@ public class UserService {
         return null;
     }
 
-    private User findByEmail(String email) throws Exception {
+    private User findByEmail(String email)  {
 
         Optional<User> user = userRepository.findUserByEmail(email);
         return user.orElse(null);

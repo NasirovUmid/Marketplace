@@ -3,10 +3,13 @@ spring:
   kafka:
     consumer:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
       properties:
         spring.json.use.type.headers: true
    #     spring.json.value.default.type: com.pm.userservice.kafka.UserEvent
         spring.json.trusted.packages: "*"
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   application:
     name: user-service
 server:

@@ -31,7 +31,7 @@ public class User {
     private String email;
 
     @Column(nullable = true)
-    private Integer phoneNumber;
+    private String phoneNumber;
 
     @Column(nullable = true)
     private String  bio;

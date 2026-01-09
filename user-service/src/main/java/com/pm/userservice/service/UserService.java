@@ -5,12 +5,12 @@ import com.pm.userservice.dto.UserUpdateRequestDTO;
 import com.pm.userservice.entity.User;
 import com.pm.commonevents.UserNotificationEvent;
 import com.pm.commonevents.enums.UserEventType;
-import com.pm.userservice.kafka.KafkaNotificationEventProducer;
 import com.pm.commonevents.UserEvent;
 import com.pm.userservice.mapper.UserMapper;
 import com.pm.userservice.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +37,11 @@ public class UserService {
     public void userCreating(UserEvent userEvent){
 
         userRepository.save(new User(userEvent.id(), null,
-                userEvent.email(), null, null, "C:\\Java\\27\\monke.jpg", userEvent.birthDate(), userEvent.timeOfCreation()));
+                userEvent.email(), userEvent.phoneNumber(), null, "C:\\Java\\27\\monke.jpg", userEvent.birthDate(), userEvent.timeOfCreation()));
+
+        kafkaNotificationEventProducer.sendingNotificationEvent(
+                new UserNotificationEvent(userEvent.id(),userEvent.email(), userEvent.phoneNumber(), UserEventType.USER_CREATED.name(), Instant.now()));
+
     }
 
     public UserResponseDTO userUpdating(UserUpdateRequestDTO updateRequestDTO){
@@ -57,13 +61,13 @@ public class UserService {
 
         // I WANNA MAKE PHONE NUMBER OBLIGATORY SO IN FUTURE I CAN USE IN TWILIO
         if (updateRequestDTO.getPhoneNumber().isPresent()){
-            user.setPhoneNumber(Integer.parseInt(updateRequestDTO.getPhoneNumber().toString()));
+            user.setPhoneNumber(updateRequestDTO.getPhoneNumber().get());
         }
 
         User editedUser = userRepository.save(user);
 
         kafkaNotificationEventProducer.sendingNotificationEvent(
-                new UserNotificationEvent(editedUser.getId(), editedUser.getEmail(), editedUser.getPhoneNumber().toString(), UserEventType.USER_CREATED.name(),editedUser.getRegisteredDate()));
+                new UserNotificationEvent(editedUser.getId(), editedUser.getEmail(), editedUser.getPhoneNumber().toString(), UserEventType.USER_UPDATED.name(),editedUser.getRegisteredDate()));
 
 
         return UserMapper.toDTO(editedUser);

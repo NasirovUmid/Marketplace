@@ -18,7 +18,7 @@ public class UserUpdateRequestDTO {
 
     Optional<String> bio;
 
-    Optional<Integer> phoneNumber;
+    Optional<String> phoneNumber;
 
 
     //its easier to check whether its null and now i expect it to fill profile data completely later after creation

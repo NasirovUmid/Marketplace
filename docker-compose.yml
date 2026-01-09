@@ -117,6 +117,7 @@ services:
     depends_on:
       - auth-service-database
       - kafka
+      - redis
     environment:
       - SPRING_DATA_REDIS_HOST=redis
       - JWT_SECRET=1333b5b7c1969830f7ac4c13316c4a161b2d1de0615e42d47ab7d8436ab739a4a7ba27b7

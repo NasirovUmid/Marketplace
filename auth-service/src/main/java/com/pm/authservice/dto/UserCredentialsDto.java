@@ -10,4 +10,5 @@ public class UserCredentialsDto {
     private String email;
     private String password;
     private Instant birthDate;
+    private String phoneNumber;
 }

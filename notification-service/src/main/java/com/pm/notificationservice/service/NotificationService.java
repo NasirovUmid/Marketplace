@@ -33,13 +33,16 @@ public class NotificationService {
 
                 THE ONE ABOVE IS MORE SIMPLIFIED and i leave method untouched(getNotificationEventStatuses) in case
 */
-        try {
 
+        try {
             NotificationEventStatus notificationEventStatus = NotificationEventStatus.valueOf(userNotificationEvent.status());
 
             Notification notification = notificationRepository.save(
                     Notification.builder()
                             .userId(userNotificationEvent.userId())
+                            .catalogId(null)
+                            .catalogName(null)
+                            .bookingId(null)
                             .userEmail(userNotificationEvent.userEmail())
                             .phoneNumber(userNotificationEvent.phoneNumber())
                             .event(notificationEventStatus)
