@@ -1,5 +1,6 @@
 package com.pm.analyticservice.kafka;
 
+import com.pm.commonevents.UserEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -16,9 +17,9 @@ public class KafkaEventConsumer {
 
         log.info("User Event received: [ {} ]",userEvent);
 
-      /* log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}, From = {}]",
+       log.info("User Event : [User Id = {} , Email = {} , EventTYPE = {}, Date = {}, From = {}]",
                 userEvent.id(),userEvent.email(),userEvent.eventType(),userEvent.timeOfCreation(),userEvent.address());
-*/
+
 
 
     }

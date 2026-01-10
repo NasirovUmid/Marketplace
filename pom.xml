@@ -19,6 +19,7 @@
         <module>notification-service</module>
         <module>user-service</module>
         <module>auth-service</module>
+        <module>analytic-service</module>
     </modules>
 
     <properties>

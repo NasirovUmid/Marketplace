@@ -13,6 +13,7 @@ import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -68,9 +69,13 @@ public class BookingService {
 
     }
 
-    public void cancellingBooking(UUID bookingId){
+    public String  cancellingBooking(UUID bookingId){
 
-        Booking booking = bookingRepository.findById(bookingId).get();
+        Optional<Booking> checkBooking = bookingRepository.findById(bookingId);
+
+        if (checkBooking.isEmpty()) return "no such booking";
+
+        Booking booking = checkBooking.get();
 
         booking.setCancelledAt(Instant.now());
         booking.setBookingStatus(BookingStatus.BOOKING_CANCELLED);
@@ -83,15 +88,18 @@ public class BookingService {
 
         redisBookingService.deleteBooking(bookingId);
 
+        return "deletion is successful";
     }
 
     // I thought anyways I would check status with if so I didnt add Status to Payment event record
     // I need to delete redis value as it can automatically send event by ending of TTL
     public void confirmingBooking(PaymentEvent paymentEvent,boolean isSuccess) throws ChangeSetPersister.NotFoundException {
 
-        Booking booking = bookingRepository.findBookingByTicketId(paymentEvent.ticketId());
+        Optional<Booking> checkBooking = bookingRepository.findBookingByTicketId(paymentEvent.ticketId());
 
-        if (booking == null) throw new ChangeSetPersister.NotFoundException();
+        if (checkBooking.isEmpty()) throw new ChangeSetPersister.NotFoundException();
+
+        Booking booking = checkBooking.get();
 
         if (isSuccess){
 

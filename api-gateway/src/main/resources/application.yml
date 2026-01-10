@@ -8,7 +8,6 @@ spring:
         webflux:
           routes:
 
-
             - id: auth-service-route
               uri: http://auth-service:8081
               predicates:
@@ -24,3 +23,29 @@ spring:
               filters:
                 - StripPrefix=1
                 - JwtValidation
+
+            - id: booking-service-route
+              uri: http://booking-service:8084
+              predicates:
+                - Path=/booking/**
+              filters:
+                - StripPrefix=1
+                - JwtValidation
+
+            - id: catalog-service-route
+              uri: http://catalog-service:8085
+              predicates:
+                - Path=/catalog-service/**
+              filters:
+                - StripPrefix=1
+                - JwtValidation
+
+            - id: payment-service-route
+              uri: http://payment-service:8087
+              predicates:
+                - Path=/payment/**
+              filters:
+                - StripPrefix=1
+                - JwtValidation
+
+

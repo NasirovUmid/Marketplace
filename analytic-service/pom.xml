@@ -6,7 +6,7 @@
         <groupId>com.pm</groupId>
         <artifactId>marketplace</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath>../pom.xml</relativePath> <!-- lookup parent from repository -->
     </parent>
     <artifactId>analytic-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>

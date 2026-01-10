@@ -1,11 +1,11 @@
 package com.pm.authservice.dto;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 @Builder
+@AllArgsConstructor
 @Getter
+@NoArgsConstructor
 public class JwtAuthenticationDto {
 
     private String token;

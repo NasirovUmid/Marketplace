@@ -39,13 +39,13 @@ public class UserService {
     public AuthResponse login(UserCredentialsDto userCredentialsDto) throws AuthenticationException {
 
         Optional<User> user = findByCredentials(userCredentialsDto);
-
+        JwtAuthenticationDto jwtAuthenticationDto = new JwtAuthenticationDto();
         try {
 
         if (user == null) return new AuthResponse("Unauthorized",false,userCredentialsDto);
 
 
-        JwtAuthenticationDto jwtAuthenticationDto = jwtService.generateAuthToken(user.get().getEmail());
+        jwtAuthenticationDto = jwtService.generateAuthToken(user.get().getEmail());
 
         refreshTokenService.save(user.get().getId().toString(), jwtAuthenticationDto.getRefreshToken(),2);
 
@@ -54,7 +54,7 @@ public class UserService {
             System.out.println(e.getMessage());
         }
 
-        return new AuthResponse("Tokens are created",true,userCredentialsDto.getEmail());
+        return new AuthResponse("Tokens are created =  'User login' ",true,jwtAuthenticationDto);
 
     }
 
@@ -73,24 +73,26 @@ public class UserService {
     if (refreshToken != null && jwtService.validateJwtToken(refreshToken)) {
 
         User user = findByEmail(jwtService.getEmailFromToken(refreshToken));
+        boolean exists = refreshTokenService.exists(user.getId().toString());
 
-        if (!refreshTokenService.exists(user.getId().toString())||
-                !refreshTokenService.getRefreshToken(user.getId().toString()).equals(refreshTokenDto.getRefreshToken()))
+        if (!exists)
             return new AuthResponse("Fake RefreshToken",false,refreshToken);
 
+        String refresh = refreshTokenService.getRefreshToken(user.getId().toString());
 
 
-        return new AuthResponse("Token is updated", true, jwtService.refreshBaseToken(user.getEmail(), refreshToken));
+        return new AuthResponse("Token is updated", true, jwtService.refreshBaseToken(user.getEmail(), refresh));
 
        }
 
-         return new AuthResponse("No RefreshToken",false,refreshToken);
+         return new AuthResponse("RefreshToken is expired , Login is needed",false,refreshToken);
 
     }
 
     public AuthResponse creatingUser(UserCredentialsDto userCredentialsDto) throws Exception {
 
-            if (findByEmail(userCredentialsDto.getEmail())!=null) return new AuthResponse("Email EXISTS",false,userCredentialsDto.getEmail());
+            if (findByEmail(userCredentialsDto.getEmail())!=null)
+                return new AuthResponse("Email EXISTS",false,userCredentialsDto.getEmail());
 
         User user = User.builder()
                         .email(userCredentialsDto.getEmail())
@@ -101,10 +103,13 @@ public class UserService {
         // Default , if necessary should be changed manually (via update method in controller)
         User user1 = userRepository.save(user);
 
-        refreshTokenService.save(user1.getId().toString(),user1.getEmail(),2);
+        JwtAuthenticationDto jwtAuthenticationDto = jwtService.generateAuthToken(user1.getEmail());
+
+        refreshTokenService.save(user1.getId().toString(), jwtAuthenticationDto.getRefreshToken(), 2);
+
         kafkaEventProducer.sendEvent(new UserEvent(user1.getId(),user1.getEmail(), userCredentialsDto.getPhoneNumber(), UserEventType.USER_CREATED, Instant.now(),"Auth-service",userCredentialsDto.getBirthDate()));
 
-        return new AuthResponse("User is created",true,user.getEmail());
+        return new AuthResponse("User is created",true,jwtAuthenticationDto);
     }
 
     private Optional<User> findByCredentials(UserCredentialsDto userCredentialsDto)  {

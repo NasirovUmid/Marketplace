@@ -67,32 +67,32 @@ services:
 
 
 
- # analytic-service:
-  #  build:
-   #   context: .
-    #  dockerfile: analytic-service/Dockerfile
-    #container_name: "analytics-service"
-    #depends_on:
-     #  elasticsearch:
-       # condition: service_healthy
-      # kafka:
-        # condition: service_healthy
+  analytic-service:
+    build:
+      context: .
+      dockerfile: analytic-service/Dockerfile
+    container_name: "analytic-service"
+    depends_on:
+       elasticsearch:
+        condition: service_healthy
+       kafka:
+         condition: service_healthy
 
-  #  environment:
+    environment:
      # - SPRING_KAFKA_PROPERTIES_SPRING_JSON_USE_TYPE_HEADERS=false
-    #  - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #    - SPRING_PROFILES_ACTIVE=docker
-      #- SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES=*
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_PROFILES_ACTIVE=docker
+     #- SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES=*
       #- SPRING_KAFKA_PROPERTIES_SPRING_JSON_VALUE_DEFAULT_TYPE=com.pm.analyticservice.kafka.UserEvent
       #- SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER=org.springframework.kafka.support.serializer.JsonDeserializer
-  #    - SPRING_MAIN_LOG_LEVEL=DEBUG
-  #  ports:
-  #    - "8083:8083"
-  #  logging:
-  #    driver: json-file
-   #   options:
-   #     max-size: "10m"
-    #    max-file: "3"
+      - SPRING_MAIN_LOG_LEVEL=DEBUG
+    ports:
+      - "8083:8083"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   auth-service-database:
     image: postgres:17.6

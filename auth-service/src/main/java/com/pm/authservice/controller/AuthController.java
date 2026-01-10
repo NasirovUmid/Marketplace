@@ -52,7 +52,13 @@ public class AuthController {
     @PostMapping("/validate")
     public ResponseEntity<Void> validate(@RequestHeader("Authorization")String header){
 
-        return userService.validateToken(header) ?
+        // Authorization: Bearer <token>
+
+        if (header==null || !header.startsWith("Bearer ")){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return userService.validateToken(header.substring(7)) ?
                 ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
     }

@@ -28,11 +28,12 @@ public class BookingController {
     }
 
     @PostMapping("/delete/{bookingId}")
-    public ResponseEntity<Void> cancellingBooking(@PathVariable UUID bookingId){
+    public ResponseEntity<String> cancellingBooking(@PathVariable UUID bookingId){
 
-        bookingService.cancellingBooking(bookingId);
+        String result = bookingService.cancellingBooking(bookingId);
 
-        return ResponseEntity.noContent().build();
+        return result.startsWith("d") ? ResponseEntity.ok().body(result) : ResponseEntity.badRequest().body(result);
+
     }
 
 
