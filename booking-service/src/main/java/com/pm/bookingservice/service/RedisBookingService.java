@@ -1,8 +1,5 @@
 package com.pm.bookingservice.service;
 
-import com.pm.bookingservice.entity.Booking;
-import com.pm.bookingservice.enums.BookingStatus;
-import com.pm.bookingservice.repository.BookingRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,8 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisBookingService {
 
     private final RedisTemplate<String, List<UUID>> redisTemplate;
-    private final BookingRepository bookingRepository;
-    private final KafkaCatalogEventProducer kafkaCatalogEventProducer;
+
 
     public void saveBooking(UUID bookingId,UUID ticketId,UUID userId){
     redisTemplate.opsForValue().set("booking:"+bookingId,Arrays.asList(ticketId,userId),10, TimeUnit.MINUTES);

@@ -5,6 +5,7 @@ import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.service.CatalogService;
 import com.pm.catalogservice.service.TicketService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +25,9 @@ public class TicketController {
     @GetMapping("/tickets")
     public ResponseEntity<List<Ticket>> availableTickets(UUID catalogId){
 
-        return ResponseEntity.ok().body(ticketService.availableTickets(catalogId));
+        List<Ticket> ticketList = ticketService.availableTickets(catalogId);
+
+        return ticketList != null ? ResponseEntity.ok().body(ticketList) : ResponseEntity.status(HttpStatus.valueOf("no tickets left")).build();
 
     }
 

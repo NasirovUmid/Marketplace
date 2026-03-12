@@ -120,7 +120,6 @@ services:
       - redis
     environment:
       - SPRING_DATA_REDIS_HOST=redis
-      - JWT_SECRET=1333b5b7c1969830f7ac4c13316c4a161b2d1de0615e42d47ab7d8436ab739a4a7ba27b7
       - SPRING_DATA_REDIS_PASSWORD=java
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATASOURCE_PASSWORD=java
@@ -140,10 +139,14 @@ services:
   redis:
     image: bitnami/redis
     container_name: "redis"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     environment:
       - REDIS_PASSWORD=java
     ports:
       - "6379:6379"
+    volumes:
+      - ./infrastructure/redis/redis.conf:/usr/local/etc/redis/redis.conf
+
 
 
   user-service:
@@ -154,6 +157,7 @@ services:
     depends_on:
       - user-service-database
       - kafka
+      - minio
     environment:
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://user-service-DataBase:5432/users_db
@@ -224,7 +228,11 @@ services:
     depends_on:
       - payment-service-db
       - kafka
+      - redis
     environment:
+      - SPRING_DATASOURCE_PASSWORD=java
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_HOST=redis
     #  - SERVER_PORT=8087
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-service-db:5432/payments_db
@@ -296,6 +304,9 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SPRING_MAIN_LOG_LEVEL=DEBUG
+   #   - TWILIO_ACCOUNT_CID=xxx
+   #   - TWILIO_AUTH_TOKEN=xxx
+    #  - TWILIO_OUTGOING_NUMBER=xxx
     ports:
       - "8086:8086"
 
@@ -310,6 +321,22 @@ services:
       - C:\Java\JAVA\REVISION\Microservice\database_volumes\notification-service-db:/var/marketplace/notification-service/data
     ports:
       - "5005:5432"
+
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ./es-data/minio-data:/data
+
+
 
 volumes:
   es-data:

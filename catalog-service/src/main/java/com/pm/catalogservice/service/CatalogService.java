@@ -1,22 +1,30 @@
 package com.pm.catalogservice.service;
 
+import com.pm.catalogservice.dto.CatalogResponseDto;
 import com.pm.catalogservice.entity.Catalog;
+import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.commonevents.CatalogNotificationEvent;
 import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.entity.Ticket;
-import com.pm.commonevents.enums.CatalogStatus;
-import com.pm.commonevents.enums.TicketStatus;
+import com.pm.catalogservice.enums.CatalogStatus;
 import com.pm.catalogservice.repository.CatalogRepository;
 import com.pm.catalogservice.repository.TicketRepository;
+import com.pm.commonevents.exception.AlreadyExistsException;
+import com.pm.commonevents.exception.NotFoundException;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class CatalogService {
@@ -24,85 +32,86 @@ public class CatalogService {
     private final CatalogRepository catalogRepository;
     private final TicketRepository ticketRepository;
     private final KafkaEventProducer kafkaEventProducer;
-    private final Logger logger = LoggerFactory.getLogger(CatalogService.class);
+    private final TicketService ticketService;
 
-    public List<Catalog> getAllCatalogs(){
+    public Page<Catalog> getAllCatalogs(Pageable pageable,
+                                        Integer priceFrom,
+                                        Integer priceTo,
+                                        String status,
+                                        Instant dateFrom,
+                                        Instant dateTo) {
 
-       return catalogRepository.findAll();
+        return catalogRepository.search(priceFrom, priceTo, status, dateFrom, dateTo, pageable);
 
     }
 
-    public boolean creatingCatalog(CreationRequestDto catalog){
+    public boolean creatingCatalog(CreationRequestDto catalog) {
 
-        // IF YOU CHANGED CODE (REMOVED CODE OR ADDED CONFIGURATIONS)ALWAYS REBUILD(docker compose up -d --build {name/or without - all})
-        //OTHERWISE OLD CODE WILL RUIN YOUR LIFE AS YOUR EXES
+        if (catalogRepository.existsByTitle(catalog.title()))
+            throw new AlreadyExistsException("CATALOG CREATE: Catalog with = [ " + catalog.title() + " ] ");
 
-    try {
-
-    Catalog newCatalog = catalogRepository.save(Catalog.builder().
-            title(catalog.title()).
-            description(catalog.description())
-            .price(catalog.price())
-            .creatorId(catalog.creatorId())
-            .numberOfTickets(catalog.numberOfTickets())
-            .status(CatalogStatus.ACTIVE)
-            .dateOfEvent(catalog.dateOfEvents())
-            .createdAt(Instant.now())
-            .build());
+        Catalog newCatalog = Catalog.builder().
+                title(catalog.title()).
+                description(catalog.description())
+                .price(catalog.price())
+                .creatorId(catalog.creatorId())
+                .numberOfTickets(null)
+                .status(CatalogStatus.ACTIVE)
+                .dateOfEvent(catalog.dateOfEvents())
+                .createdAt(Instant.now())
+                .build();
 
 
-    kafkaEventProducer.sendCatalogNotification(
-            new CatalogNotificationEvent(newCatalog.getId(), newCatalog.getTitle(),
-                    newCatalog.getCreatorId(), CatalogStatus.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
+        List<Ticket> ticketList = new ArrayList<>();
+        Ticket ticket;
 
+        for (int i = 1; i <= catalog.numberOfTickets(); i++) {
 
-    //generate available tickets without buyersId
-    for (int i = 1; i <= newCatalog.getNumberOfTickets(); i++) {
-        ticketRepository.save(Ticket.builder()
-                .catalog(newCatalog)
-                .status(TicketStatus.AVAILABLE)
-                .buyerId(null)
-                .build());
-    }
-      }  catch (Exception argumentException){
+            ticket = ticketRepository.save(Ticket.builder()
+                    .catalog(newCatalog)
+                    .status(TicketStatus.AVAILABLE)
+                    .build());
 
-      argumentException.printStackTrace();
-      logger.error("catalog = [ {} ] , problem = [ {} ]",argumentException,catalog);
-        return false;
+            ticketList.add(ticket);
+        }
 
-      }
+        newCatalog.setNumberOfTickets(ticketList);
+        catalogRepository.save(newCatalog);
+        kafkaEventProducer.sendCatalogNotification(
+                new CatalogNotificationEvent(newCatalog.getId(), newCatalog.getTitle(),
+                        newCatalog.getCreatorId(), CatalogStatus.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
+
         return true;
     }
 
-    public Catalog getCatalog(UUID catalogId){
+    public CatalogResponseDto getCatalog(UUID catalogId) {
 
-        //couldnt unite them but maybe its more understandable this way
+        Catalog catalog = getCatalogById(catalogId);
 
-        Catalog catalog = catalogRepository.findById(catalogId).get();
+        List<Ticket> tickets = ticketService.availableTickets(catalogId);
+        int totalTickets = ticketRepository.totalTicketsNumber(catalog);
 
-        //finding tickets of catalog
-        List<Ticket> tickets = ticketRepository.findTicketByCatalog(catalog)
-                .stream().filter(ticket -> ticket.getCatalog().equals(catalog)).toList();
-
-
-        //counting available ones and returning
-        Long amount = tickets.stream().
-                filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).count();
-
-        if (amount<1) {
+        if (tickets.isEmpty()) {
             catalog.setStatus(CatalogStatus.SOLD_OUT);
-            catalog.setNumberOfTickets(null);
         }
-        catalog.setNumberOfTickets(amount);
 
-        return catalog;
+        catalog.setNumberOfTickets(null);
+
+        return new CatalogResponseDto(catalog, totalTickets, catalog.getNumberOfTickets().size());
     }
 
-    public Catalog updateCatalog(Catalog catalog){
+    public List<Ticket> getCatalogsAvailableTickets(UUID id) {
 
-        Catalog updatingCatalog = catalogRepository.findById(catalog.getId()).get();
+        return ticketService.availableTickets(id);
 
-        if (updatingCatalog == null) return null;
+    }
+
+    public Catalog updateCatalog(Catalog catalog) {
+
+        Catalog updatingCatalog = getCatalogById(catalog.getId());
+
+        if (updatingCatalog == null)
+            throw new NotFoundException("UPDATE CATALOG: Catalog with Id = [ " + catalog.getId() + " ] ");
 
 
         updatingCatalog = Catalog.builder()
@@ -117,12 +126,34 @@ public class CatalogService {
 
     }
 
-    public void deleteCatalog(UUID catalogId){
+    // guess admin should deactivate not delete from Database but i dunno how to do this probably add new endpoint only for admins and also new STATUS (enum)
+    public void deleteCatalog(UUID catalogId) {
 
         catalogRepository.deleteById(catalogId);
 
     }
 
+    public Catalog getCatalogById(UUID catalogId) {
 
+        Optional<Catalog> catalog = catalogRepository.findCatalogById(catalogId);
+
+        return catalog.orElseThrow(() -> new NotFoundException("GET CATALOG BY ID: Catalog with Id = [ " + catalogId + " ] "));
+    }
+
+    public static Sort toCatalogSort(String sort) {
+        if (sort == null) return Sort.by("dateOfEvent").ascending();
+
+        String s = sort.trim().toLowerCase();
+        if (s.equals("dateofevent,desc")) return Sort.by("dateOfEvent").descending();
+        if (s.equals("dateofevent,asc"))  return Sort.by("dateOfEvent").ascending();
+
+        if (s.equals("createdat,desc"))   return Sort.by("createdAt").descending();
+        if (s.equals("createdat,asc"))    return Sort.by("createdAt").ascending();
+
+        if (s.equals("price,desc"))       return Sort.by("price").descending();
+        if (s.equals("price,asc"))        return Sort.by("price").ascending();
+
+        return Sort.by("dateOfEvent").ascending();
+    }
 
 }

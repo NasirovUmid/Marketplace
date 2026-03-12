@@ -19,13 +19,12 @@ import java.util.UUID;
 @Table(name = "users") // automatically created "user" but its busy so ERROR thats why use @table
 public class User {
 
-    @Id
     //@GeneratedValue(strategy = GenerationType.AUTO)  we will get id from request it should be generated in auth-service already No meaning creating new one
+    @Id
     private UUID id;
 
     @Column(nullable = true)
     private String fullName;
-
 
     @Column(unique = true,nullable = false)
     private String email;
@@ -36,7 +35,7 @@ public class User {
     @Column(nullable = true)
     private String  bio;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String imageUrl;
 
     @Column(nullable = false)

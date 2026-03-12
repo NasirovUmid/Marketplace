@@ -1,5 +1,7 @@
 package com.pm.paymentservice.service;
 
+import com.pm.commonevents.exception.AlreadyExistsException;
+import com.pm.commonevents.exception.NotFoundException;
 import com.pm.paymentservice.dto.PaymentRequestDto;
 import com.pm.paymentservice.entity.Payment;
 import com.pm.commonevents.PaymentEvent;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -20,32 +23,71 @@ public class PaymentService {
     private final KafkaPaymentEventProducer kafkaPaymentEventProducer;
     private final PaymentRepository paymentRepository;
     private final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+    private final RedisService redisService;
 
-    public Payment confirmingPayment(PaymentRequestDto paymentRequestDto){
+    public PaymentEvent confirmingPayment(UUID bookingId){
 
-        Payment payment = paymentRepository.findPaymentsByTicketId(paymentRequestDto.ticketId(),paymentRequestDto.buyerId()).getLast();
+       // Payment payment = paymentRepository.findPaymentsByTicketId(paymentRequestDto.ticketId(),paymentRequestDto.buyerId()).getLast();
 
-        if (payment==null || payment.getPaymentStatus().equals(PaymentStatus.SUCCEEDED)||
-                payment.getPaymentStatus().equals(PaymentStatus.FAILED)) return null;
+        PaymentEvent paymentEvent = redisService.getPayment(bookingId);
 
-         logger.info("Payment = [ {} ]",payment);
+        if (paymentEvent==null) throw new NotFoundException("CONFIRM PAYMENT: Payment probably is expired because it is ");
+
+         logger.info("Payment event = [ {} ]",paymentEvent);
 
 
-        if (paymentRequestDto.isPaid()){
-            payment.setPaymentStatus(PaymentStatus.SUCCEEDED);
-            payment.setPaidAt(Instant.now());
-            paymentRepository.save(payment);
-            kafkaPaymentEventProducer.sendingPaymentEvent(new PaymentEvent(payment.getTicketId(),payment.getBuyerId()),PaymentStatus.SUCCEEDED);
-        }else {
-            payment.setPaymentStatus(PaymentStatus.FAILED);
-            paymentRepository.save(payment);
-            kafkaPaymentEventProducer.sendingPaymentEvent(new PaymentEvent(payment.getTicketId(),payment.getBuyerId()),PaymentStatus.FAILED);
-        }
 
-        return payment;
+
+           Payment payment =  paymentRepository.save(Payment.builder()
+                    .ticketId(paymentEvent.ticketId())
+                    .bookingId(paymentEvent.bookingId())
+                    .price(paymentEvent.price())
+                    .buyerId(paymentEvent.buyerId())
+                    .paymentStatus(PaymentStatus.SUCCEEDED)
+                    .createdAt(Instant.now())
+                    .paidAt(Instant.now())
+                    .build());
+
+
+            kafkaPaymentEventProducer.sendingPaymentEvent(new PaymentEvent(payment.getTicketId(),payment.getBuyerId(),payment.getBookingId(), payment.getPrice()),PaymentStatus.SUCCEEDED);
+
+ //           payment.setPaymentStatus(PaymentStatus.FAILED);
+ //           paymentRepository.save(payment);
+
+
+
+        return paymentEvent;
 
     }
 
+    public void cancelPayment(UUID bookingId){
+
+        PaymentEvent paymentEvent = redisService.getPayment(bookingId);
+
+        if (paymentEvent == null) throw new NotFoundException("CANCEL PAYMENT: payment probably expired because it is ");
+
+        logger.info("CANCELLING PAYMENT: {}",bookingId);
+
+  //      redisService.deletePayment(paymentEvent.bookingId());
+        kafkaPaymentEventProducer.sendingPaymentEvent(
+                new PaymentEvent(paymentEvent.ticketId(),paymentEvent.buyerId(),paymentEvent.bookingId(),paymentEvent.price()),PaymentStatus.FAILED);
+
+    }
+
+    public void creatingPayment(PaymentEvent paymentEvent){
+
+        if (redisService.doesExists(paymentEvent.bookingId())){ throw new AlreadyExistsException("CREATE PAYMENT: payment ");}
+
+            redisService.savePayment(paymentEvent);
+
+    }
+
+    public void expirePayment(UUID bookingId){
+
+        redisService.deletePayment(bookingId);
+
+    }
+/*
     public void creatingPayment(PaymentEvent paymentEvent){
 
         Payment payment = paymentRepository.findPaymentByTicketId(paymentEvent.ticketId(),paymentEvent.buyerId());
@@ -65,4 +107,6 @@ public class PaymentService {
 
 
     }
+    */
+
 }

@@ -2,13 +2,14 @@ package com.pm.catalogservice.service;
 
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
-import com.pm.commonevents.enums.TicketStatus;
-import com.pm.catalogservice.repository.CatalogRepository;
+import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.catalogservice.repository.TicketRepository;
+import com.pm.commonevents.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -16,22 +17,33 @@ import java.util.UUID;
 public class TicketService {
 
     private final TicketRepository ticketRepository;
-    private final CatalogRepository catalogRepository;
+    private final CatalogService catalogService;
 
 
-    public List<Ticket> availableTickets(UUID catalogId){
+    public List<Ticket> availableTickets(UUID catalogId) {
 
-        List<Ticket> ticketList = ticketRepository.findTicketByCatalog(catalogRepository.findById(catalogId).get());
+        Catalog catalog = catalogService.getCatalogById(catalogId);
 
-        return ticketList.stream().filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).toList();
+        if (catalog == null)
+            throw new NotFoundException("FIND CATALOG BY ID FOR TICKET: Catalog with ID = [ " + catalogId + " ] ");
 
+        List<Ticket> ticketList = ticketRepository.findTicketsByCatalog(catalog)
+                .stream().filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).toList();
+
+        if (ticketList == null)
+            throw new NotFoundException("FIND AVAILABLE TICKETS BY CATALOG : Tickets of [ " + catalog.getTitle() + " ] ");
+        if (ticketList.isEmpty()) return null;
+
+        return ticketList;
     }
 
+    public void changeTicketStatus(UUID catalogId, UUID ticketId, TicketStatus ticketStatus, UUID buyerId) {
 
-    // I SIMPLIFIED search -> first, we group tickets by catalog and seek necessary ticket
-    public void changeTicketStatus(UUID catalogId,UUID ticketId,TicketStatus ticketStatus,UUID buyerId){
+        Optional<Ticket> ticket = ticketRepository.findAllByCatalogId(catalogId).stream().filter(ticket1 -> ticket1.getTicketId().equals(ticketId)).findFirst();
 
-        Ticket newTicket = ticketRepository.findAllByCatalogId(catalogId).stream().filter(ticket -> ticket.getTicketId().equals(ticketId)).findFirst().get();
+        if (ticket.isEmpty()) throw new NotFoundException("CHANGE STATUS: Ticket with ID = [ " + ticketId + " ] ");
+
+        Ticket newTicket = ticket.get();
 
         newTicket.setStatus(ticketStatus);
         newTicket.setBuyerId(buyerId);
@@ -39,6 +51,5 @@ public class TicketService {
         ticketRepository.save(newTicket);
 
     }
-
 
 }

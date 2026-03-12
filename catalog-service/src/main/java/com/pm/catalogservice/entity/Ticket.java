@@ -1,10 +1,9 @@
 package com.pm.catalogservice.entity;
 
-import com.pm.commonevents.enums.TicketStatus;
+import com.pm.catalogservice.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -19,7 +18,7 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID ticketId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Catalog catalog;
 
     @Enumerated(EnumType.STRING)

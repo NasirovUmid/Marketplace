@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface TicketRepository extends JpaRepository<Ticket , UUID> {
+public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
-    List<Ticket> findTicketByCatalog(Catalog catalog);
+    List<Ticket> findTicketsByCatalog(Catalog catalog);
+
+    int totalTicketsNumber(Catalog catalog);
 
     List<Ticket> findAllByCatalogId(UUID catalogId);
 }

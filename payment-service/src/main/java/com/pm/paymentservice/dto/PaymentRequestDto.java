@@ -5,6 +5,6 @@ import lombok.Getter;
 
 import java.util.UUID;
 
-public record PaymentRequestDto(UUID ticketId,UUID buyerId,Boolean isPaid) {
+public record PaymentRequestDto(UUID bookingId,Long amount,String paymentMethodId) {
 
 }

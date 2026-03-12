@@ -23,6 +23,8 @@ public class Booking {
 
     private String catalogName;
 
+    private Long price;
+
     private UUID ticketId;
 
     private UUID userId;

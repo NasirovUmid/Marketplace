@@ -34,13 +34,13 @@ public class JwtFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-    String token = getTokenFromRequest(request);
-    if (token!=null&& jwtService.validateJwtToken(token)){
+        String token = getTokenFromRequest(request);
+        if (token != null && jwtService.validateJwtToken(token)) {
 
-    setCustomUserDetailsToSecurityContextHolder(token);
+            setCustomUserDetailsToSecurityContextHolder(token);
 
         }
-    filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 
     private void setCustomUserDetailsToSecurityContextHolder(String token) {
@@ -48,19 +48,19 @@ public class JwtFilter extends OncePerRequestFilter {
         String email = jwtService.getEmailFromToken(token);
         UsersDetails usersDetails = userDetailsService.loadUserByUsername(email);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                usersDetails,null,usersDetails.getAuthorities());
+                usersDetails, null, usersDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
-    private String getTokenFromRequest(HttpServletRequest request){
+    private String getTokenFromRequest(HttpServletRequest request) {
 
-    String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (bearerToken != null && bearerToken.startsWith("Bearer ")){
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
 
-        return bearerToken.substring(7);
+            return bearerToken.substring(7);
 
-    }
-    return null;
+        }
+        return null;
     }
 }

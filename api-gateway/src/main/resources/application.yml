@@ -1,5 +1,14 @@
 server:
   port: 8082
+app:
+  security:
+    publicUrls:
+      - "/api/v1/auth/**"
+      - "/api/v1/public/**"
+    adminUrls:
+      - "/api/v1/admin/**"
+
+    authenticated:
 
 spring:
   cloud:

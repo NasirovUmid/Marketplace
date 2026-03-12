@@ -1,7 +1,7 @@
 package com.pm.catalogservice.service;
 
+import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.commonevents.TicketEvent;
-import com.pm.commonevents.enums.TicketStatus;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class KafkaEventListener {
 
         logger.info(" CANCELLED TICKET = [ {} ]",ticketEvent);
 
-    ticketService.changeTicketStatus(ticketEvent.catalogId(),ticketEvent.ticketId(), TicketStatus.AVAILABLE,ticketEvent.buyerId());
+        ticketService.changeTicketStatus(ticketEvent.catalogId(),ticketEvent.ticketId(), TicketStatus.AVAILABLE,ticketEvent.buyerId());
 
     }
 
@@ -36,7 +36,7 @@ public class KafkaEventListener {
 
         logger.info("BOOKED TICKET = [ {} ]",ticketEvent);
 
-    ticketService.changeTicketStatus(ticketEvent.catalogId(),ticketEvent.ticketId(),TicketStatus.SOLD,ticketEvent.buyerId());
+        ticketService.changeTicketStatus(ticketEvent.catalogId(),ticketEvent.ticketId(),TicketStatus.SOLD,ticketEvent.buyerId());
 
     }
 

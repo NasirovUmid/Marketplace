@@ -24,7 +24,7 @@ public class JwtService {
 
     private final Key secretKey;
 
-    public JwtService(@Value("1333b5b7c1969830f7ac4c13316c4a161b2d1de0615e42d47ab7d8436ab739a4a7ba27b7") String  secret) {
+    public JwtService(@Value("${JWT_SECRET}") String  secret) {
 
         byte[] keyBytes = Base64.getDecoder().decode(secret.getBytes(StandardCharsets.UTF_8));
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
@@ -106,7 +106,7 @@ public class JwtService {
     private String
     generateJwtToken(String email){
 
-        Date date =Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
+        Date date = Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
                 .subject(email)

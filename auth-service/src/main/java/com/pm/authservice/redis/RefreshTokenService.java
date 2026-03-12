@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class RefreshTokenService {
 
-    private final RedisTemplate<String ,String > redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
 
     public RefreshTokenService(RedisTemplate<String, String> redisTemplate) {
@@ -16,31 +16,29 @@ public class RefreshTokenService {
     }
 
 
-    public void save(String id,String refreshToken,long ttl){
+    public void save(String id, String refreshToken, long ttl) {
 
-        redisTemplate.opsForValue().set("refresh:"+id,refreshToken,ttl, TimeUnit.DAYS);
-
-    }
-
-    public boolean exists(String id){
-
-       return Boolean.TRUE.equals(redisTemplate.hasKey("refresh:"+id));
+        redisTemplate.opsForValue().set("refresh:" + id, refreshToken, ttl, TimeUnit.DAYS);
 
     }
 
-    public void delete(String id){
+    public boolean exists(String id) {
 
-        redisTemplate.delete("refresh:"+id);
-
-    }
-
-    public String getRefreshToken(String id){
-
-        return redisTemplate.opsForValue().get("refresh:"+id);
+        return Boolean.TRUE.equals(redisTemplate.hasKey("refresh:" + id));
 
     }
 
+    public boolean deleteById(String id) {
 
+        return redisTemplate.delete("refresh:" + id);
+
+    }
+
+    public String getRefreshToken(String id) {
+
+        return redisTemplate.opsForValue().get("refresh:" + id);
+
+    }
 
 
 }

@@ -2,5 +2,5 @@ package com.pm.commonevents;
 
 import java.util.UUID;
 
-public record PaymentEvent(UUID ticketId, UUID buyerId) {
+public record PaymentEvent(UUID ticketId, UUID buyerId,UUID bookingId,Long price) {
 }

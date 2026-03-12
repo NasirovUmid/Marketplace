@@ -1,11 +1,12 @@
 package com.pm.catalogservice.entity;
 
 
-import com.pm.commonevents.enums.CatalogStatus;
+import com.pm.catalogservice.enums.CatalogStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -28,7 +29,8 @@ public class Catalog {
 
     private UUID creatorId;
 
-    private Long numberOfTickets;
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<Ticket> numberOfTickets;
 
     @Enumerated(EnumType.STRING)
     private CatalogStatus status;

@@ -1,4 +1,4 @@
-package com.pm.commonevents.enums;
+package com.pm.catalogservice.enums;
 
 public enum CatalogStatus {
 

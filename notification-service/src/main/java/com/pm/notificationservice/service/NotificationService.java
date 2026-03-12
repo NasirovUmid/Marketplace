@@ -2,6 +2,7 @@ package com.pm.notificationservice.service;
 
 import com.pm.commonevents.BookingNotificationEvent;
 import com.pm.commonevents.CatalogNotificationEvent;
+import com.pm.commonevents.exception.InternalProblemException;
 import com.pm.notificationservice.entity.Notification;
 import com.pm.commonevents.UserNotificationEvent;
 import com.pm.notificationservice.enums.NotificationEventStatus;
@@ -20,6 +21,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final EmailSenderService emailSenderService;
     private final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+    private final SMSService smsService;
 
     public void saveUser(UserNotificationEvent userNotificationEvent){
 
@@ -50,11 +52,15 @@ public class NotificationService {
                             .build());
 
             emailSenderService.sendEmail(notification.getUserEmail(), "Account Created", "your profile was fully created");
+            // its almost free
+        //    smsService.sendSMS(notification.getPhoneNumber(),
+          //          "Your were Registered successfully! :) at time : "+notification.getTime()+" ,your email = "+notification.getUserEmail());
 
         } catch (Exception e){
 
             logger.error("Fucked up = [ {} ]",userNotificationEvent);
 
+            throw new InternalProblemException("SAVE USER NOTIFICATION:");
         }
     }
 
@@ -89,6 +95,8 @@ public class NotificationService {
             logger.error("booking is canceled = [ {} ]",bookingNotificationEvent);
             emailSenderService.sendEmail(bookingNotificationEvent.email(),
                     "Booking Status"," Your booking of "+bookingNotificationEvent.catalogName().toUpperCase()+" is cancelled");
+
+            throw new InternalProblemException("SAVE BOOKING NOTIFICATION: ");
         }
     }
 
@@ -120,6 +128,7 @@ public class NotificationService {
             logger.error("Problem with Saving catalog = [ {} ]",catalogNotificationEvent);
             emailSenderService.sendEmail("umidbeknosirov832@gmail.com","FAILED TO SEND","problem with creation of catalog and sending");
 
+            throw new InternalProblemException("CATALOG SAVE NOTIFICATION:");
         }
     }
 

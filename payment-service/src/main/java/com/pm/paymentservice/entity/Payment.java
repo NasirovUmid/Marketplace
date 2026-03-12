@@ -21,6 +21,10 @@ public class Payment {
 
     private UUID ticketId;
 
+    private UUID bookingId;
+
+    private Long price;
+
     private UUID buyerId;
 
     @Enumerated(EnumType.STRING)
