@@ -3,6 +3,7 @@ package com.pm.catalogservice.service;
 import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.commonevents.TicketEvent;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,7 +19,7 @@ public class KafkaEventListener {
     // I made one method for all of them
 
     @KafkaListener(topics = "ticket.fail",groupId = "ticket-service")
-    public void makeAvailable(TicketEvent ticketEvent){
+    public void makeAvailable(TicketEvent ticketEvent) throws BadRequestException {
 
         // in case of expiration of payment (redis TTL) or manual cancel by user himself
         // unsuccessful payment
@@ -30,7 +31,7 @@ public class KafkaEventListener {
     }
 
     @KafkaListener(topics = "ticket.success",groupId = "ticket-service")
-    public void makeTaken(TicketEvent ticketEvent){
+    public void makeTaken(TicketEvent ticketEvent) throws BadRequestException {
 
         // when booking service receives <- order it sends message event to -> payment service if payment is confirmed ticket will be sold
 
@@ -41,13 +42,13 @@ public class KafkaEventListener {
     }
 
     @KafkaListener(topics = "ticket.reserve",groupId = "ticket-service")
-    public void makeReserved(TicketEvent ticketEvent){
+    public void makeReserved(TicketEvent ticketEvent) throws BadRequestException {
 
         // this is for procedural situation bc ticket is in the process of being bought and this wont let others take it
 
         logger.info("RESERVED TICKET = [ {} ]",ticketEvent);
 
-        ticketService.changeTicketStatus(ticketEvent.catalogId(),ticketEvent.ticketId(),TicketStatus.RESERVES,ticketEvent.buyerId());
+        ticketService.changeTicketStatus(ticketEvent.catalogId(),ticketEvent.ticketId(),TicketStatus.RESERVED,ticketEvent.buyerId());
 
     }
 

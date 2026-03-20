@@ -1,6 +1,6 @@
 package com.pm.paymentservice.service;
 
-import com.pm.commonevents.PaymentEvent;
+import com.pm.paymentservice.dto.PaymentIntentDto;
 import lombok.AllArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -12,29 +12,29 @@ import java.util.concurrent.TimeUnit;
 @AllArgsConstructor
 public class RedisService {
 
-    private final RedisTemplate<String, PaymentEvent> redisTemplate;
+    private final RedisTemplate<String, PaymentIntentDto> redisTemplate;
 
-    public void savePayment(PaymentEvent paymentEvent){
+    public void savePayment(PaymentIntentDto paymentIntentDto) {
 
-        redisTemplate.opsForValue().set("payment:"+paymentEvent.bookingId(),paymentEvent,10, TimeUnit.MINUTES);
-
-    }
-
-    public void deletePayment(UUID bookingId){
-
-        redisTemplate.delete("payment:"+bookingId);
+        redisTemplate.opsForValue().set("payment:" + paymentIntentDto.bookingId(), paymentIntentDto, 10, TimeUnit.MINUTES);
 
     }
 
-    public boolean doesExists(UUID bookingId){
+    public void deletePayment(UUID bookingId) {
 
-        return redisTemplate.hasKey("payment:"+bookingId);
+        redisTemplate.delete("payment:" + bookingId);
 
     }
 
-    public PaymentEvent getPayment(UUID bookingId){
+    public boolean doesExists(UUID bookingId) {
 
-        return redisTemplate.opsForValue().getAndDelete("payment:"+bookingId);
+        return redisTemplate.hasKey("payment:" + bookingId);
+
+    }
+
+    public PaymentIntentDto getPayment(UUID bookingId) {
+
+        return redisTemplate.opsForValue().getAndDelete("payment:" + bookingId);
 
     }
 }

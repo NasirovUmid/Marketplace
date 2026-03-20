@@ -1,14 +1,15 @@
 package com.pm.userservice.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -16,10 +17,9 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users") // automatically created "user" but its busy so ERROR thats why use @table
+@Table(name = "users")
 public class User {
 
-    //@GeneratedValue(strategy = GenerationType.AUTO)  we will get id from request it should be generated in auth-service already No meaning creating new one
     @Id
     private UUID id;
 

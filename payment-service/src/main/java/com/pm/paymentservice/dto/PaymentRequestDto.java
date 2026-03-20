@@ -5,6 +5,10 @@ import lombok.Getter;
 
 import java.util.UUID;
 
-public record PaymentRequestDto(UUID bookingId,Long amount,String paymentMethodId) {
+public record PaymentRequestDto(
+        UUID bookingId,
+        Long amount,
+        String paymentMethodId
+) {
 
 }

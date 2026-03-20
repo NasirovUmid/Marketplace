@@ -3,11 +3,11 @@ package com.pm.userservice.service;
 import io.minio.*;
 import io.minio.errors.*;
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -23,82 +23,84 @@ public class FileService {
     private final Logger logger = LoggerFactory.getLogger(FileService.class);
     private final String bucket;
 
-    public FileService(MinioClient minioClient,@Value("${minio.bucket}") String bucket) {
+    public FileService(MinioClient minioClient, @Value("${minio.bucket}") String bucket) {
         this.minioClient = minioClient;
         this.bucket = bucket;
     }
 
-    public String  uploadFileToMinio(UUID userId, MultipartFile multipartFile){
+    @Transactional
+    public String uploadFileToMinio(UUID userId, MultipartFile multipartFile, String fileUrl) {
 
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucket)
-                            .object(userId.toString()+"_"+multipartFile.getOriginalFilename())
-                            .stream(multipartFile.getInputStream(), multipartFile.getSize(),-1)
+                            .object(userId.toString() + "_" + fileUrl)
+                            .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
                             .contentType(multipartFile.getContentType())
                             .build()
+
             );
         } catch (ErrorResponseException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error response minio= {}", e.toString());
             return null;
         } catch (InsufficientDataException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error insufficient data mino= {}", e.toString());
             return null;
-        //    throw new RuntimeException(e);
+            //    throw new RuntimeException(e);
         } catch (InternalException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error internal = {}", e.toString());
             return null;
-        //    throw new RuntimeException(e);
+            //    throw new RuntimeException(e);
         } catch (InvalidKeyException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error invalid key = {}", e.toString());
             return null;
-        //    throw new RuntimeException(e);
+            //    throw new RuntimeException(e);
         } catch (InvalidResponseException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error invalid response = {}", e.toString());
             return null;
-        //    throw new RuntimeException(e);
+            //    throw new RuntimeException(e);
         } catch (IOException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error io minio = {}", e.toString());
             return null;
-        //    throw new RuntimeException(e);
+            //    throw new RuntimeException(e);
         } catch (NoSuchAlgorithmException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error no such algorithm = {}", e.toString());
             return null;
-        //    throw new RuntimeException(e);
+            //    throw new RuntimeException(e);
         } catch (ServerException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error server = {}", e.toString());
             return null;
-       //     throw new RuntimeException(e);
+            //     throw new RuntimeException(e);
         } catch (XmlParserException e) {
-            logger.error("error = {}",e.toString());
+            logger.error("error xml parser = {}", e.toString());
             return null;
-     //       throw new RuntimeException(e);
+            //       throw new RuntimeException(e);
         }
 
-        return userId+"_"+multipartFile.getOriginalFilename();
+        return "profileimages/" + userId + "_" + fileUrl;
 
     }
 
-    public void deleteImageFromBucket(String objectKey){
+    public void deleteImageFromBucket(UUID id, String objectKey) {
 
         try {
 
             minioClient.removeObject(RemoveObjectArgs
                     .builder()
-                            .bucket(bucket)
-                            .object(objectKey)
+                    .bucket(bucket)
+                    .object(id + "_" + objectKey)
                     .build());
-        }catch (Exception e){
+        } catch (Exception e) {
 
-            logger.error("Failed to delete Image = {}",objectKey,e);
+            logger.error("Failed to delete Image = {}", objectKey, e);
 
         }
 
     }
 
     @PostConstruct
-    public void init(){
+    public void init() {
 
         try {
 
@@ -107,24 +109,22 @@ public class FileService {
                             .bucket(bucket)
                             .build());
 
-                if (!exists){
+            if (!exists) {
 
-                            minioClient.makeBucket(
-                                    MakeBucketArgs.builder()
-                                            .bucket(bucket)
-                                            .build()
-                            );
-                }
+                minioClient.makeBucket(
+                        MakeBucketArgs.builder()
+                                .bucket(bucket)
+                                .build()
+                );
+            }
 
-        }catch (Exception e){
+        } catch (Exception e) {
 
-            throw new RuntimeException("Failed to init MiniO bucket",e);
+            throw new RuntimeException("Failed to init MiniO bucket", e);
 
         }
 
     }
-
-
 
 
 }

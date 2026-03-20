@@ -1,20 +1,20 @@
 package com.pm.userservice.dto;
 
-import lombok.*;
+import com.pm.userservice.entity.User;
 
-import java.time.Instant;
-import java.time.LocalDate;
+public record UserResponseDTO(
+        String fullName,
+        String email,
+        String phoneNumber,
+        String bio,
+        String imageUrl
+) {
+    public static UserResponseDTO from(User user) {
 
-@Data
-@Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserResponseDTO {
-
-
-
-    private String email;
-    private String imageName;
-
+        return new UserResponseDTO(user.getFullName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getBio(),
+                user.getImageUrl());
+    }
 }

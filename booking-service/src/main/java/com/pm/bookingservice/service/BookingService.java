@@ -68,22 +68,20 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking creatingBooking(@NonNull BookingRequestDto booking) {
+    public UUID creatingBooking(@NonNull BookingRequestDto booking) {
 
-        if (checkBooking(booking.catalogId(), booking.userId()) != null)
-            throw new AlreadyExistsException("BOOKING CREATE: Booking is waiting PAYMENT and ");
+        checkBooking(booking.userId(), booking.ticketId());
 
         Booking booking1 = bookingRepository.save(Booking.builder()
                 .ticketId(booking.ticketId())
                 .userId(booking.userId())
                 .email(booking.email())
+                .bookingStatus(BookingStatus.PENDING_PAYMENT)
                 .catalogId(booking.catalogId())
                 .catalogName(booking.catalogName())
                 .price(booking.price())
-                .bookingStatus(BookingStatus.PENDING_PAYMENT)
                 .createdAt(Instant.now())
                 .build());
-
 
         redisBookingService.saveBooking(booking1.getBookingId(), booking1.getTicketId(), booking1.getUserId());
 
@@ -93,7 +91,7 @@ public class BookingService {
         // reserving ticket - catalog-service
         kafkaCatalogEventProducer.reservingTicket(new TicketEvent(booking1.getCatalogId(), booking1.getTicketId(), booking1.getUserId()));
 
-        return booking1;
+        return booking1.getBookingId();
     }
 
     @Transactional
@@ -118,7 +116,7 @@ public class BookingService {
     }
 
     @Transactional
-    public boolean cancellingBooking(UUID bookingId) {
+    public void cancellingBooking(UUID bookingId) {
 
         Booking booking = notnull(bookingRepository.findById(bookingId));
 
@@ -132,7 +130,6 @@ public class BookingService {
 
         redisBookingService.deleteBooking(bookingId);
 
-        return true;
     }
 
     @Transactional
@@ -168,11 +165,15 @@ public class BookingService {
         bookingRepository.save(booking);
     }
 
-    private Booking checkBooking(UUID catalogId, UUID userId) {
+    private void checkBooking(UUID userId, UUID ticketId) {
 
-        Optional<Booking> booking = bookingRepository.findBookingByCatalogIdAndUserIdAndBookingStatus(catalogId, userId, BookingStatus.PENDING_PAYMENT);
+        Optional<Booking> booking = bookingRepository.findBookingByTicketIdAndUserId(ticketId, userId);
 
-        return booking.orElse(null);
+        if (null != booking.get()) {
+
+            throw new AlreadyExistsException("Booking ");
+        }
+
     }
 
     private <T> T notnull(Optional<T> booking) {

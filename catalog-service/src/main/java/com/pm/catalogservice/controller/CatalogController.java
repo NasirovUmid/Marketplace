@@ -2,9 +2,17 @@ package com.pm.catalogservice.controller;
 
 import com.pm.catalogservice.dto.CatalogResponseDto;
 import com.pm.catalogservice.dto.CreationRequestDto;
+import com.pm.catalogservice.dto.UpdateRequestDto;
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.service.CatalogService;
+import com.pm.commonevents.exception.ApiProblem;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,14 +27,23 @@ import java.util.UUID;
 import static com.pm.catalogservice.service.CatalogService.toCatalogSort;
 
 @RestController
-@RequestMapping("/catalog/")
+@RequestMapping("/catalogs")
 @AllArgsConstructor
 public class CatalogController {
 
     private final CatalogService catalogService;
 
-    @GetMapping("catalogs")
-    public Page<Catalog> getCatalogs(@RequestParam(defaultValue = "0") int page,
+    @Operation(summary = "Page of Catalogs", description = "Returns page of catalogs with tickets")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Returns page of 20/50 catalogs",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "500", description = "Unexpected Error",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @GetMapping()
+    public Page<Catalog> getCatalogs(@Parameter(description = "Page of Catalogs , size = 20 ", example = "1") @RequestParam(defaultValue = "0") int page,
                                      @RequestParam(defaultValue = "dateOfEvent,asc") String sort,
                                      @RequestParam(required = false) Integer priceFrom,
                                      @RequestParam(required = false) Integer priceTo,
@@ -39,35 +56,68 @@ public class CatalogController {
     }
 
 
-    @PostMapping("newCatalog")
-    public ResponseEntity<Void> creatingCatalog(@RequestBody CreationRequestDto catalog) {
+    @Operation(summary = "Create Catalog", description = "Creates new Catalog")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Catalog created and Returns its ID",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UUID.class))),
+            @ApiResponse(responseCode = "409", description = "conflict with existing data",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @PostMapping()
+    public UUID creatingCatalog(@RequestBody CreationRequestDto catalog) {
 
-        boolean isSaved = catalogService.creatingCatalog(catalog);
+        UUID catalogId = catalogService.creatingCatalog(catalog);
 
-        return isSaved ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+        return catalogId;
 
     }
 
-    @GetMapping("catalog/{id}")
+    @Operation(summary = "Returns Catalog", description = "Returns catalog without tickets list but number of Available and total of them ")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Returns exact Catalog with given id ",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CatalogResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Catalog was not found",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @GetMapping("{id}")
     public CatalogResponseDto getCatalogDetails(@PathVariable UUID id) {
 
         return catalogService.getCatalog(id);
 
     }
 
-    @GetMapping("catalog/{id}/tickets")
+    @Operation(summary = "List of Tickets", description = "Returns List of Available Tickets of a exact Catalog")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of all available tickets",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = List.class))),
+            @ApiResponse(responseCode = "404", description = "Catalog was found",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @GetMapping("/{id}/tickets")
     public List<Ticket> getNumberOfAvailableTickets(@PathVariable UUID id) {
 
         return catalogService.getCatalogsAvailableTickets(id);
 
     }
 
-    @PutMapping("catalog")
-    public ResponseEntity<Catalog> updateCatalog(@RequestBody Catalog catalog) {
+    @Operation(summary = "Updates Catalog", description = "Updates existing Catalog by ID ")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Catalog successfully updated",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Catalog was not found")
+    })
+    @PutMapping("{id}")
+    public ResponseEntity<Catalog> updateCatalog(@PathVariable UUID id, @RequestBody UpdateRequestDto catalog) {
 
-        Catalog updatedCatalog = catalogService.updateCatalog(catalog);
+        Catalog updatedCatalog = catalogService.updateCatalog(id, catalog);
 
-        return updatedCatalog != null ? ResponseEntity.ok().body(updatedCatalog) : ResponseEntity.badRequest().body(catalog);
+        return ResponseEntity.ok().body(updatedCatalog);
 
     }
 

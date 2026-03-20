@@ -7,6 +7,6 @@ import java.util.List;
 
 public record CatalogResponseDto(
         Catalog catalog,
-        int totalTicketsNumber,
+        long totalTicketsNumber,
         int availableTicketsNumber) {
 }

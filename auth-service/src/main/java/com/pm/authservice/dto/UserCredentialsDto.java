@@ -1,18 +1,15 @@
 package com.pm.authservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import java.time.Instant;
+public record UserCredentialsDto(
+        @Email @NotNull
+        String email,
+        @NotNull @Size(min = 8, max = 45)
+        String password
+) {
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserCredentialsDto {
 
-    private String email;
-    private String password;
-    private Instant birthDate;
-    private String phoneNumber;
 }

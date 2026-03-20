@@ -34,12 +34,19 @@ public class JwtFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String token = getTokenFromRequest(request);
-        if (token != null && jwtService.validateJwtToken(token)) {
 
-            setCustomUserDetailsToSecurityContextHolder(token);
-
+        if (request.getServletPath().contains("register")) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        String token = getTokenFromRequest(request);
+
+        if (token != null) {
+            setCustomUserDetailsToSecurityContextHolder(token);
+            jwtService.validateJwtToken(token);
+        }
+
         filterChain.doFilter(request, response);
     }
 

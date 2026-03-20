@@ -12,7 +12,11 @@ import java.time.Instant;
 
 
 public final class ApiProblem {
-    public static ProblemDetail of(HttpStatus httpStatus, String code, String detail, HttpServletRequest httpServlet, Throwable ex) {
+    public static ProblemDetail of(HttpStatus httpStatus, String detail, HttpServletRequest httpServlet, Throwable ex) {
+
+        String code = ex.getClass().getSimpleName()
+                .replaceAll("([a-z])([A-Z])", "$1_$2")
+                .toLowerCase();
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(httpStatus, detail);
         pd.setTitle(httpStatus.getReasonPhrase());

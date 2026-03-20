@@ -1,10 +1,14 @@
 package com.pm.authservice.controller;
 
-import com.pm.authservice.dto.ChangePasswordDto;
-import com.pm.authservice.dto.RefreshTokenDto;
-import com.pm.authservice.dto.UserCredentialsDto;
-import com.pm.authservice.payload.AuthResponse;
+import com.pm.authservice.dto.*;
 import com.pm.authservice.service.UserService;
+import com.pm.commonevents.exception.ApiProblem;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth/")
+@Tag(name = "Auth-service", description = "API for authentication of users, The list of endpoints /login, /register, /refresh, /validate, /log-out/{id}, /change-password")
 public class AuthController {
 
     private final UserService userService;
@@ -22,68 +27,112 @@ public class AuthController {
         this.userService = userService1;
     }
 
-    //created new JwtToken and RefreshToken
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody UserCredentialsDto userCredentialsDto) {
+    @Operation(summary = "Login in existing account", description = "Entering already created account to get tokens")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Returns new Tokens ( Access token && Refresh token )",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = JwtAuthenticationDto.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @PostMapping("login")
+    public ResponseEntity<JwtAuthenticationDto> login(@RequestBody UserCredentialsDto userCredentialsDto) {
 
-        AuthResponse authResponse = userService.login(userCredentialsDto);
+        JwtAuthenticationDto jwtAuthenticationDto = userService.login(userCredentialsDto);
 
-        return authResponse.isSuccess() ? ResponseEntity.ok().body(authResponse) : ResponseEntity.unprocessableContent().body(authResponse);
+        return ResponseEntity.ok().body(jwtAuthenticationDto);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody UserCredentialsDto userCredentialsDto) {
+    @Operation(summary = "Create account", description = "Creates new Account")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Creates new user",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserCreationResponseDto.class))),
+            @ApiResponse(responseCode = "409", description = "Conflict with existing data",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @PostMapping("register")
+    public ResponseEntity<UserCreationResponseDto> register(@RequestBody CreationRequest creationRequest) {
 
-        AuthResponse success = userService.creatingUser(userCredentialsDto);
+        UserCreationResponseDto userCreationResponseDto = userService.creatingUser(creationRequest);
 
-        return success.isSuccess() ? ResponseEntity.ok().body(success) : ResponseEntity.status(HttpStatus.ALREADY_REPORTED).build();
+        return ResponseEntity.status(201).body(userCreationResponseDto);
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
+    @Operation(summary = "Refreshing AccessToken", description = "Returns new Access token and old Refresh Token ")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Refreshes token",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = JwtAuthenticationDto.class))),
+            @ApiResponse(responseCode = "401", description = "Expired Refresh Token",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class))),
+            @ApiResponse(responseCode = "401", description = "Invalid Refresh Token",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @PostMapping("refresh")
+    public ResponseEntity<JwtAuthenticationDto> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
 
-        return ResponseEntity.ok().body(userService.refreshToken(refreshTokenDto));
+        JwtAuthenticationDto jwtAuthenticationDto = userService.refreshToken(refreshTokenDto);
+
+        return ResponseEntity.ok().body(jwtAuthenticationDto);
     }
 
-    @PostMapping("/validate")
+    @Operation(summary = "Validation of Token", description = "Validates Access Token")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "The token is valid",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = " Token is no valid",
+                    content = @Content(mediaType = "application/problem + json"))
+    })
+    @PostMapping("validate")
     public ResponseEntity<Void> validate(@RequestHeader("Authorization") String header) {
-
-        // Authorization: Bearer <token>
 
         if (header == null || !header.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return userService.validateToken(header.substring(7)) ?
-                ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        userService.validateToken(header.substring(7));
+
+        return ResponseEntity.ok().build();
     }
 
-    // I had problem with redis and here we ar , this method for checking redis password
     @PostConstruct
     public void checkRedis() {
         System.out.println("REDIS PASSWORD = " +
                 System.getenv("SPRING_DATA_REDIS_PASSWORD"));
     }
 
-    @PostMapping("/log-out/{id}")
+    @Operation(summary = "Logging Out", description = "Logging out from account")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Refresh Token invalidated"),
+            @ApiResponse(responseCode = "404", description = "The Refresh Token was not found / expired",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @PostMapping("log-out/{id}")
     public ResponseEntity<Void> logOut(@PathVariable UUID id) {
 
-        boolean isLoggedOut = userService.logOut(id);
+        userService.logOut(id);
 
-        return isLoggedOut ? ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/change-password")
+    @Operation(summary = "Changes Password", description = "Changes Password")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Password successfully changed"),
+            @ApiResponse(responseCode = "404", description = "Email was not found",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @PatchMapping("change-password")
     public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
 
-        boolean isChanged = userService.changePassword(changePasswordDto);
+        userService.changePassword(changePasswordDto);
 
-        return isChanged ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
+        return ResponseEntity.ok().build();
     }
-
-
-    // Email cant be changed , new emails are registered but passwords
-    // so in the future i can add update password its simple but probably I can skip it ,just it`s bare useful
-
-
 }

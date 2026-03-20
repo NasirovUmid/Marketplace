@@ -5,25 +5,28 @@ import com.pm.commonevents.UserNotificationEvent;
 import com.pm.commonevents.enums.UserEventType;
 import com.pm.commonevents.exception.AlreadyExistsException;
 import com.pm.commonevents.exception.InternalProblemException;
-import com.pm.commonevents.exception.NotFoundException;
+import com.pm.userservice.dto.AdminFilterDto;
+import com.pm.userservice.dto.UserProfileDto;
 import com.pm.userservice.dto.UserResponseDTO;
 import com.pm.userservice.dto.UserUpdateRequestDTO;
 import com.pm.userservice.entity.User;
+import com.pm.userservice.filter.SpecFilter;
 import com.pm.userservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -33,48 +36,24 @@ public class UserService {
     private final KafkaNotificationEventProducer kafkaNotificationEventProducer;
     private final FileService fileService;
     private final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private final String imageUrl = "http://localhost:9000/";
 
 
-    public Page<User> userList(int page, String sort, int size, String filter) {
+    @Transactional(readOnly = true)
+    public Page<User> userList(int page, String sort, int size, String email, Instant birthDateFrom, Instant birthDateTo, Instant registerDateFrom, Instant registerDateTo) {
 
-        Specification<User> spec = ((root, query, criteriaBuilder) -> {
+        Specification<User> spec = SpecFilter.byFilter(new AdminFilterDto(email, birthDateFrom, birthDateTo, registerDateFrom, registerDateTo));
 
-            if (filter == null || filter.isEmpty()) {
+        String[] sortingArr = sort.split(",");
 
-                return criteriaBuilder.conjunction();
-            }
-
-            if (filter.contains(">")) {
-                String[] parts = filter.split(">");
-                return criteriaBuilder.greaterThan(root.get(parts[0]), LocalDate.parse(parts[1]));
-            }
-
-            if (filter.contains("<")) {
-                String[] parts = filter.split("<");
-                return criteriaBuilder.lessThan(root.get(parts[0]), LocalDate.parse(parts[1]));
-            }
-
-            if (filter.contains(":")) {
-                String[] parts = filter.split(":");
-                return criteriaBuilder.equal(root.get(parts[0]), LocalDate.parse(parts[1]));
-            }
-
-            return null;
-
-        });
-
-
-        String sorting = sort.substring(",".length()).equals("asc") ? "asc" : "desc";
-        String sortingField = sorting.substring(0, ",".length());
-
-        Sort sort1 = sorting.equals("asc") ? Sort.by(sortingField).ascending() : Sort.by(sortingField).descending();
-        return userRepository.findAll(spec, PageRequest.of(page,size,sort1));
-
+        Sort sort1 = sortingArr[1].equals("asc") ? Sort.by(sortingArr[0]).ascending() : Sort.by(sortingArr[0]).descending();
+        return userRepository.findAll(spec, PageRequest.of(page, size, sort1));
     }
 
+    @Transactional
     public void userCreating(UserEvent userEvent) {
 
-        if (userRepository.findUserByEmail(userEvent.email()))
+        if (userRepository.existsByEmail(userEvent.email()))
             throw new AlreadyExistsException("USER CREATE: user with Email = [ " + userEvent.email() + " ] ");
 
         userRepository.save(new User(userEvent.id(), null,
@@ -85,68 +64,62 @@ public class UserService {
 
     }
 
-    public UserResponseDTO userUpdating(UserUpdateRequestDTO updateRequestDTO) {
+    @Transactional
+    public UserResponseDTO userUpdating(UserUpdateRequestDTO updateRequestDTO, MultipartFile multipartFile) {
 
-        User user = getUser(updateRequestDTO.getEmail());
+        User user = userRepository.findByEmail(updateRequestDTO.email());
 
-        if (user == null)
-            throw new NotFoundException("USER UPDATE: User with email = [ " + updateRequestDTO.getEmail() + " ] ");
-
-        if (updateRequestDTO.getFullName().isPresent()) {
-            user.setFullName(updateRequestDTO.getFullName().toString());
+        if (updateRequestDTO.fullName() != null) {
+            user.setFullName(updateRequestDTO.fullName());
         }
 
-        // IF ITS NULL MAYBE USER WANT TO REMOVE BIO?
-        user.setBio(updateRequestDTO.getBio().toString());
-
-
-        // I WILL CHANGE USEREVENTS AND WILL MAKE OBLIGATORY IN REGISTRATION WRITE BITRHDATE SO HERE SHOULD NOT BE CHANCE TO CHANGE IT
-        //    user.setBirthDate(LocalDate.parse(updateRequestDTO.getBirthDate().toString())); I DID AT THE MOMENT
-
-        // I WANNA MAKE PHONE NUMBER OBLIGATORY SO IN FUTURE I CAN USE IN TWILIO
-        if (updateRequestDTO.getPhoneNumber().isPresent()) {
-            user.setPhoneNumber(updateRequestDTO.getPhoneNumber().get());
+        if (updateRequestDTO.bio().isBlank() || updateRequestDTO.bio() != null) {
+            user.setBio(updateRequestDTO.bio());
         }
 
+        if (updateRequestDTO.phoneNumber() != null) {
+            user.setPhoneNumber(updateRequestDTO.phoneNumber());
+        }
 
-        if (updateRequestDTO.getImage() != null) { // does user want to change photo ?
+        if (multipartFile != null || multipartFile.isEmpty()) {
 
-            if (user.getImageUrl().startsWith(user.getId().toString())) {
+            String newFileUrl = UUID.randomUUID() + "." + multipartFile.getOriginalFilename().substring(
+                    multipartFile.getOriginalFilename().lastIndexOf(".")
+            );
 
-                fileService.deleteImageFromBucket(user.getImageUrl());
+            fileService.deleteImageFromBucket(user.getId(), user.getImageUrl());
 
-            }
-            String objectKey = fileService.uploadFileToMinio(user.getId(), updateRequestDTO.getImage());
+            String objectKey = fileService.uploadFileToMinio(user.getId(), multipartFile, newFileUrl);
 
             if (objectKey == null) { // if uploading was successful
 
-                logger.error("PROBLEM WITH SAVING FILE = {}", updateRequestDTO.getImage().getOriginalFilename());
+                logger.error("PROBLEM WITH SAVING FILE = {}", multipartFile.getOriginalFilename());
                 throw new InternalProblemException(
-                        "The Image file could not saved = [ " + updateRequestDTO.getImage().getOriginalFilename().
-                                substring(updateRequestDTO.getImage().getOriginalFilename().lastIndexOf('_') + 1));
+                        "The Image file could not saved = [ " + multipartFile.getOriginalFilename().
+                                substring(multipartFile.getOriginalFilename().lastIndexOf('_') + 1));
             }
             user.setImageUrl(objectKey);
-
         }
 
         User editedUser = userRepository.save(user);
 
         kafkaNotificationEventProducer.sendingNotificationEvent(
-                new UserNotificationEvent(editedUser.getId(), editedUser.getEmail(), editedUser.getPhoneNumber().toString(),
+                new UserNotificationEvent(editedUser.getId(), editedUser.getEmail(), editedUser.getPhoneNumber(),
                         UserEventType.USER_UPDATED.name(), editedUser.getRegisteredDate()));
 
-        return new UserResponseDTO(editedUser.getEmail(), true,
-                editedUser.getImageUrl().substring(editedUser.getImageUrl().lastIndexOf('_') + 1));
+        editedUser.setImageUrl(imageUrl + editedUser.getImageUrl());
 
+        return UserResponseDTO.from(editedUser);
     }
 
-    public User getUser(String email) {
+    public UserProfileDto getUserProfile(UUID userId) {
 
-        Optional<User> validateUser = userRepository.findByEmail(email);
+        User user = userRepository.findUserById(userId);
 
-        return validateUser.orElse(null);
+        user.setImageUrl(imageUrl + user.getImageUrl());
+
+        return UserProfileDto.from(user);
 
     }
-
 
 }

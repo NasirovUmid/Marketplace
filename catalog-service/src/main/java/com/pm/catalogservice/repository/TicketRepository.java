@@ -13,7 +13,7 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     List<Ticket> findTicketsByCatalog(Catalog catalog);
 
-    int totalTicketsNumber(Catalog catalog);
-
     List<Ticket> findAllByCatalogId(UUID catalogId);
+
+    Catalog findCatalogByCatalogId(UUID uuid);
 }

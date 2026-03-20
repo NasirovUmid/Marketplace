@@ -18,6 +18,8 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     Optional<Booking> findBookingByCatalogIdAndUserIdAndBookingStatus(UUID catalogId, UUID userId, BookingStatus bookingStatus);
 
+    Optional<Booking> findBookingByTicketIdAndUserId(UUID ticketId, UUID userId);
+
     Page<Booking> findByUserId(UUID userId, Pageable pageable);
 
     Page<Booking> findByUserIdAndBookingStatus(UUID userId, BookingStatus bookingStatus, Pageable pageable);

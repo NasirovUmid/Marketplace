@@ -1,85 +1,105 @@
 package com.pm.userservice.controller;
 
+import com.pm.commonevents.exception.ApiProblem;
 import com.pm.userservice.dto.UserProfileDto;
 import com.pm.userservice.dto.UserResponseDTO;
 import com.pm.userservice.dto.UserUpdateRequestDTO;
 import com.pm.userservice.entity.User;
 import com.pm.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users/")
-@Tag(name = "Users", description = "API for user management, The list of endpoints \"users\" GET - returns list of all users")
+@RequestMapping("/users")
+@Tag(name = "Users", description = "API for user management, The list of endpoints /users, /update/{id}, /me")
 public class UserController {
 
     private final UserService userService;
-
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+    @Operation(summary = "List user (admin only) ",
+            description = "Returns List of 20/50 users, supports page index, sorting and filter by email , registeredDateFrom | registeredDateTo and birthDateFrom | birthDateTo",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Page of users",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "500", description = "Unexpected Error",
+                    content = @Content(mediaType = "application/problem + json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
     @GetMapping()
-    @Operation(summary = "This method sends all users` profile ")
-    public Page<User> usersList(@RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "registeredDate,desc") String sort,
-                                @RequestParam(defaultValue = "20") int size,
-                                @RequestParam(required = false) String filter) {
+    public Page<User> usersList(
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Sorting. Allowed: registeredDate,desc | registeredDate,asc", example = "registeredDate,desc") @RequestParam(defaultValue = "registeredDate,desc") String sort,
+            @Parameter(description = "Size. Allowed: 20 | 50 , by default: 20", example = "20") @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) Instant birthDateFrom,
+            @RequestParam(required = false) Instant birthDateTo,
+            @RequestParam(required = false) Instant registerDateFrom,
+            @RequestParam(required = false) Instant registerDateTo
+    ) {
 
-
-        Page<User> page1 = userService.userList(Math.max(page, 0), sort, size == 20 ? size : size == 50 ? size : 20, filter);
+        Page<User> page1 = userService.userList(Math.max(page, 0), sort, size == 20 ? size : size == 50 ? size : 20, email, birthDateFrom, birthDateTo, registerDateFrom, registerDateTo);
 
         return page1;
     }
 
-    @GetMapping("{id}/avatar")
-    public ResponseEntity<Void> getAvatar(@PathVariable UUID id) {
+    @Operation(summary = "Update user(user only) ",
+            description = "Updates user`s personal profile and it is waited to request include image",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Updating user",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "User was not found in database",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponseDTO> updatingUser(
+            @RequestPart("data") UserUpdateRequestDTO userUpdateRequestDTO,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
-
-    }
-
-    @GetMapping("{id}/")
-    public ResponseEntity<UserProfileDto> getUserProfile(@PathVariable UUID id) {
-
-        return ResponseEntity.ok().build();
-    }
-
-
-    //we again need confirmation of validation from kafka but it doesnt check its containing so we do it
-    //Also we will get here file
-    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Editing existing user`s details")
-    public ResponseEntity<UserResponseDTO> updatingUser(@RequestPart UserUpdateRequestDTO userUpdateRequestDTO, @RequestPart(value = "image", required = false) MultipartFile multipartFile) {
-
-        if (userUpdateRequestDTO.getFullName().isEmpty() && userUpdateRequestDTO.getBio().isEmpty()
-                && userUpdateRequestDTO.getPhoneNumber().isEmpty() && userUpdateRequestDTO.getImage().isEmpty()) {
-            throw new RuntimeException("Request contains no new changes, WTF!");
-        }
-
-        UserUpdateRequestDTO updateRequestDTO;
-
-        if (!multipartFile.isEmpty()) {
-
-            updateRequestDTO = userUpdateRequestDTO;
-            updateRequestDTO.setImage(multipartFile);
-        }
-
-        UserResponseDTO userResponseDTO = userService.userUpdating(userUpdateRequestDTO);
+        UserResponseDTO userResponseDTO = userService.userUpdating(userUpdateRequestDTO,image);
 
         return ResponseEntity.ok().body(userResponseDTO);
 
+    }
+
+    @Operation(summary = "Returns exact User (user only)",
+            description = "Returns user`s personal details, also avatar image included",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Returns User",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserProfileDto.class))),
+            @ApiResponse(responseCode = "404", description = "the user was not found in database",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiProblem.class)))
+    })
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileDto> getUserProfile(@RequestHeader("X-User-Id") UUID userId) {
+
+        UserProfileDto userProfile = userService.getUserProfile(userId);
+
+        return ResponseEntity.ok().body(userProfile);
     }
 
 }

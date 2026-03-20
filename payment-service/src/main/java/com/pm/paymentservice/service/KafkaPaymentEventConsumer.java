@@ -1,6 +1,7 @@
 package com.pm.paymentservice.service;
 
 import com.pm.commonevents.PaymentEvent;
+import com.stripe.exception.StripeException;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ public class KafkaPaymentEventConsumer {
     private final Logger logger = LoggerFactory.getLogger(KafkaPaymentEventConsumer.class);
 
     @KafkaListener(topics = "paymentevent",groupId = "payment-service")
-    public void paymentListener(PaymentEvent paymentEvent){
+    public void paymentListener(PaymentEvent paymentEvent) throws StripeException {
 
     logger.info("Request for Payment = [ {} ] ",paymentEvent);
 

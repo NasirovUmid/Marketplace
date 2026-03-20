@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -23,7 +25,7 @@ public class GlobalExceptionHandler {
         logger.error("EMAIL ALREADY EXISTS EXCEPTION   = {} ", emailAlreadyExistsException.getMessage().toUpperCase());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                ApiProblem.of(HttpStatus.CONFLICT, emailAlreadyExistsException.getMessage(), emailAlreadyExistsException.getMessage(), httpServletRequest, emailAlreadyExistsException));
+                ApiProblem.of(HttpStatus.CONFLICT,  emailAlreadyExistsException.getMessage(), httpServletRequest, emailAlreadyExistsException));
 
     }
 
@@ -33,18 +35,40 @@ public class GlobalExceptionHandler {
         logger.error("USER DOES NOT EXISTS EXCEPTION = {} ", userNotFoundException.getMessage().toUpperCase());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                ApiProblem.of(HttpStatus.NOT_FOUND, userNotFoundException.toString(), userNotFoundException.getMessage(), httpServletRequest, userNotFoundException));
+                ApiProblem.of(HttpStatus.NOT_FOUND, userNotFoundException.getMessage(), httpServletRequest, userNotFoundException));
 
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidTokenException(InvalidTokenException invalidTokenException,HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ProblemDetail> handleInvalidTokenException(InvalidTokenException invalidTokenException, HttpServletRequest httpServletRequest) {
 
         logger.error("INVALID TOKEN EXCEPTION = {}", invalidTokenException.getMessage().toUpperCase());
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                ApiProblem.of(HttpStatus.UNAUTHORIZED,invalidTokenException.toString(),invalidTokenException.getMessage(),httpServletRequest,invalidTokenException));
+                ApiProblem.of(HttpStatus.UNAUTHORIZED, invalidTokenException.getMessage(), httpServletRequest, invalidTokenException));
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleUnexpected(Exception exception, HttpServletRequest httpServletRequest) {
+
+        logger.error("UNEXPECTED ERROR", exception);
+
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        String detail = exception.getMessage();
+
+        if (exception instanceof ErrorResponse errorResponse) {
+
+            status = HttpStatus.valueOf(errorResponse.getStatusCode().value());
+            detail = errorResponse.getBody().getDetail();
+        } else if (exception instanceof ResponseStatusException rsException) {
+            status = HttpStatus.valueOf(rsException.getStatusCode().value());
+            detail = rsException.getReason();
+        }
+
+        return ResponseEntity.status(status).body(
+                ApiProblem.of(status, exception.getMessage(), httpServletRequest, exception));
+
+
+    }
 
 }

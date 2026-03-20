@@ -29,7 +29,7 @@ public class Catalog {
 
     private UUID creatorId;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private List<Ticket> numberOfTickets;
 
     @Enumerated(EnumType.STRING)

@@ -20,20 +20,20 @@ import java.util.Date;
 @Component
 public class JwtService {
 
-    private final org.apache.logging.log4j.Logger logger =  LogManager.getLogger(JwtService.class);
+    private final org.apache.logging.log4j.Logger logger = LogManager.getLogger(JwtService.class);
 
     private final Key secretKey;
 
-    public JwtService(@Value("${JWT_SECRET}") String  secret) {
+    public JwtService(@Value("${JWT_SECRET}") String secret) {
 
         byte[] keyBytes = Base64.getDecoder().decode(secret.getBytes(StandardCharsets.UTF_8));
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public JwtAuthenticationDto generateAuthToken(String email){
+    public JwtAuthenticationDto generateAuthToken(String email) {
 
         // jwtAuthenticationDto.setToken(generateJwtToken(email));
-       // jwtAuthenticationDto
+        // jwtAuthenticationDto
 
         //Gotta try builder
         return JwtAuthenticationDto.builder()
@@ -42,14 +42,7 @@ public class JwtService {
                 .build();
     }
 
-    public JwtAuthenticationDto refreshBaseToken(String email,String refreshToken){
-
-        /*
-        JwtAuthenticationDto jwtAuthenticationDto =new JwtAuthenticationDto();
-        jwtAuthenticationDto.setToken(generateJwtToken(email));
-        jwtAuthenticationDto.setRefreshToken(refreshToken);
-
-         */
+    public JwtAuthenticationDto refreshBaseToken(String email, String refreshToken) {
 
         return JwtAuthenticationDto.builder()
                 .token(generateJwtToken(email))
@@ -59,8 +52,7 @@ public class JwtService {
         // for refreshing ONLY IF  refresh token isnt already expired
     }
 
-
-    public String getEmailFromToken(String token){
+    public String getEmailFromToken(String token) {
 
         Claims claims = Jwts.parser()
                 .verifyWith((SecretKey) secretKey)
@@ -71,7 +63,7 @@ public class JwtService {
         return claims.getSubject();
     }
 
-    public Claims extractClaims(String token){
+    public Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) secretKey)
                 .build()
@@ -79,7 +71,7 @@ public class JwtService {
                 .getPayload();
     }
 
-    public boolean validateJwtToken(String token){
+    public void validateJwtToken(String token) {
 
         try {
             Jwts.parser()
@@ -87,46 +79,48 @@ public class JwtService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-            return true;
 
-        }catch (ExpiredJwtException expiredJwtException){
-            logger.error("JWT expired!",expiredJwtException);
-        }catch (UnsupportedJwtException unsupportedJwtException){
-            logger.error("Unsupported jwt",unsupportedJwtException);
-        }catch (MalformedJwtException malformedJwtException){
-            logger.error("Ugly jwt REMAKE!",malformedJwtException);
-        }catch (SecurityException securityException){
-            logger.error("Security Exception",securityException);
-        }catch (Exception exception){
-            logger.error("I dunno ,mb Invalid Token",exception);
+        } catch (ExpiredJwtException expiredJwtException) {
+            logger.error("JWT expired!", expiredJwtException);
+            throw new RuntimeException(expiredJwtException.getMessage());
+        } catch (UnsupportedJwtException unsupportedJwtException) {
+            logger.error("Unsupported jwt", unsupportedJwtException);
+            throw new RuntimeException(unsupportedJwtException.getMessage());
+        } catch (MalformedJwtException malformedJwtException) {
+            logger.error("Ugly jwt REMAKE!", malformedJwtException);
+            throw new RuntimeException(malformedJwtException.getMessage());
+        } catch (SecurityException securityException) {
+            logger.error("Security Exception", securityException);
+            throw new RuntimeException(securityException.getMessage());
+        } catch (Exception exception) {
+            logger.error("I dunno ,mb Invalid Token", exception);
+            throw new RuntimeException(exception.getMessage());
         }
-        return false;
+
     }
 
     private String
-    generateJwtToken(String email){
+    generateJwtToken(String email) {
 
         Date date = Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
 
         return Jwts.builder()
                 .subject(email)
-                .claim("type",TokenType.ACCESS)
+                .claim("type", TokenType.ACCESS)
                 .expiration(date)
                 .signWith(secretKey)
                 .compact();
-        //subject - identification , without claim() which is additional for payload
     }
 
-    private String generateRefreshToken(String email){
+    private String generateRefreshToken(String email) {
 
-    Date date = Date.from(LocalDateTime.now().plusHours(5).atZone(ZoneId.systemDefault()).toInstant());
+        Date date = Date.from(LocalDateTime.now().plusHours(5).atZone(ZoneId.systemDefault()).toInstant());
 
-    return Jwts.builder()
-            .subject(email)
-            .claim("type",TokenType.REFRESH)
-            .expiration(date)
-            .signWith(secretKey)
-            .compact();
-    //almost the same but for refreshing for more time
+        return Jwts.builder()
+                .subject(email)
+                .claim("type", TokenType.REFRESH)
+                .expiration(date)
+                .signWith(secretKey)
+                .compact();
     }
 }

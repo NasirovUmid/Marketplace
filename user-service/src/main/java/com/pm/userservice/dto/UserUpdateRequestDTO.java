@@ -1,30 +1,27 @@
 package com.pm.userservice.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+@Schema(name = "UserUpdateRequestDto", description = "used for updating user profile")
+public record UserUpdateRequestDTO(
 
-@Data
-public class UserUpdateRequestDTO {
+        @Schema(example = "umid")
+        String fullName,
 
+        @Schema(example = "umid@gmail.com")
+        @NotNull @Email
+        String email,
 
-    Optional<String> fullName;
+        @Schema(example = "addict and super racist")
+        String bio,
 
-    String email;
+        @Schema(example = "+998933082174")
+        @Pattern(regexp = "^(\\\\+?998)?\\\\d{9}$", message = "A number has to be in the format of (+)998XXXXXXXXX")
+        String phoneNumber
 
-    Optional<String> bio;
-
-    Optional<String> phoneNumber;
-
-    MultipartFile image;
-
-
-    //its easier to check whether its null and now i expect it to fill profile data completely later after creation
-
-
-
+) {
 }

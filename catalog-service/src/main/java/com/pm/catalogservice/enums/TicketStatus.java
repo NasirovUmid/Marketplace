@@ -3,6 +3,6 @@ package com.pm.catalogservice.enums;
 public enum TicketStatus {
 
     AVAILABLE,
-    RESERVES,
+    RESERVED,
     SOLD
 }

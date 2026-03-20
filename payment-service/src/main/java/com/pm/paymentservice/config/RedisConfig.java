@@ -1,6 +1,7 @@
 package com.pm.paymentservice.config;
 
 import com.pm.commonevents.PaymentEvent;
+import com.pm.paymentservice.dto.PaymentIntentDto;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -13,9 +14,9 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, PaymentEvent> redisTemplate(RedisConnectionFactory redisConnectionFactory){
+    public RedisTemplate<String, PaymentIntentDto> redisTemplate(RedisConnectionFactory redisConnectionFactory){
 
-        RedisTemplate<String,PaymentEvent> redisTemplate = new RedisTemplate<>();
+        RedisTemplate<String,PaymentIntentDto> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.afterPropertiesSet();
 

@@ -10,7 +10,7 @@
     </parent>
     <artifactId>booking-service</artifactId>
     <packaging>jar</packaging>
-   <!-- <version>1.0-SNAPSHOT</version>-->
+    <!-- <version>1.0-SNAPSHOT</version>-->
     <name>booking-service</name>
     <description>booking-service</description>
     <url/>
@@ -33,6 +33,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.13</version>
         </dependency>
         <dependency>
             <groupId>com.pm</groupId>

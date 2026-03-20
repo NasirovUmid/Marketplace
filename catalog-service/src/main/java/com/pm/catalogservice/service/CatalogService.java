@@ -1,6 +1,7 @@
 package com.pm.catalogservice.service;
 
 import com.pm.catalogservice.dto.CatalogResponseDto;
+import com.pm.catalogservice.dto.UpdateRequestDto;
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.commonevents.CatalogNotificationEvent;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class CatalogService {
 
     }
 
-    public boolean creatingCatalog(CreationRequestDto catalog) {
+    public UUID creatingCatalog(CreationRequestDto catalog) {
 
         if (catalogRepository.existsByTitle(catalog.title()))
             throw new AlreadyExistsException("CATALOG CREATE: Catalog with = [ " + catalog.title() + " ] ");
@@ -63,16 +65,13 @@ public class CatalogService {
 
 
         List<Ticket> ticketList = new ArrayList<>();
-        Ticket ticket;
 
         for (int i = 1; i <= catalog.numberOfTickets(); i++) {
 
-            ticket = ticketRepository.save(Ticket.builder()
+            ticketList.add(Ticket.builder()
                     .catalog(newCatalog)
                     .status(TicketStatus.AVAILABLE)
                     .build());
-
-            ticketList.add(ticket);
         }
 
         newCatalog.setNumberOfTickets(ticketList);
@@ -81,7 +80,7 @@ public class CatalogService {
                 new CatalogNotificationEvent(newCatalog.getId(), newCatalog.getTitle(),
                         newCatalog.getCreatorId(), CatalogStatus.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
 
-        return true;
+        return newCatalog.getId();
     }
 
     public CatalogResponseDto getCatalog(UUID catalogId) {
@@ -89,7 +88,7 @@ public class CatalogService {
         Catalog catalog = getCatalogById(catalogId);
 
         List<Ticket> tickets = ticketService.availableTickets(catalogId);
-        int totalTickets = ticketRepository.totalTicketsNumber(catalog);
+        long totalTickets = catalogRepository.totalTicketsNumber(catalog.getId());
 
         if (tickets.isEmpty()) {
             catalog.setStatus(CatalogStatus.SOLD_OUT);
@@ -106,21 +105,26 @@ public class CatalogService {
 
     }
 
-    public Catalog updateCatalog(Catalog catalog) {
+    @Transactional
+    public Catalog updateCatalog(UUID id, UpdateRequestDto updateRequestDto) {
 
-        Catalog updatingCatalog = getCatalogById(catalog.getId());
+        Catalog updatingCatalog = getCatalogById(id);
 
-        if (updatingCatalog == null)
-            throw new NotFoundException("UPDATE CATALOG: Catalog with Id = [ " + catalog.getId() + " ] ");
+        if (updatingCatalog.getTitle() != null) {
+            updatingCatalog.setTitle(updateRequestDto.title());
+        }
 
+        if (updatingCatalog.getDescription().isBlank() || updateRequestDto != null) {
+            updatingCatalog.setTitle(updatingCatalog.getDescription());
+        }
 
-        updatingCatalog = Catalog.builder()
-                .title(catalog.getTitle())
-                .description(catalog.getDescription())
-                .price(catalog.getPrice())
-                .status(catalog.getStatus())
-                .dateOfEvent(catalog.getDateOfEvent())
-                .build();
+        if (updateRequestDto.price() != null) {
+            updatingCatalog.setPrice(updateRequestDto.price());
+        }
+
+        if (updateRequestDto.dateOfEvent() != null) {
+            updatingCatalog.setDateOfEvent(updateRequestDto.dateOfEvent());
+        }
 
         return catalogRepository.save(updatingCatalog);
 
@@ -145,13 +149,13 @@ public class CatalogService {
 
         String s = sort.trim().toLowerCase();
         if (s.equals("dateofevent,desc")) return Sort.by("dateOfEvent").descending();
-        if (s.equals("dateofevent,asc"))  return Sort.by("dateOfEvent").ascending();
+        if (s.equals("dateofevent,asc")) return Sort.by("dateOfEvent").ascending();
 
-        if (s.equals("createdat,desc"))   return Sort.by("createdAt").descending();
-        if (s.equals("createdat,asc"))    return Sort.by("createdAt").ascending();
+        if (s.equals("createdat,desc")) return Sort.by("createdAt").descending();
+        if (s.equals("createdat,asc")) return Sort.by("createdAt").ascending();
 
-        if (s.equals("price,desc"))       return Sort.by("price").descending();
-        if (s.equals("price,asc"))        return Sort.by("price").ascending();
+        if (s.equals("price,desc")) return Sort.by("price").descending();
+        if (s.equals("price,asc")) return Sort.by("price").ascending();
 
         return Sort.by("dateOfEvent").ascending();
     }

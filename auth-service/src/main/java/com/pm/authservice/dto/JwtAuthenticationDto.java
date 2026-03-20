@@ -1,14 +1,16 @@
 package com.pm.authservice.dto;
 
-import lombok.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
 @Builder
-@AllArgsConstructor
-@Getter
-@NoArgsConstructor
-public class JwtAuthenticationDto {
+public record JwtAuthenticationDto(
+        @NotNull
+        String token,
 
-    private String token;
-    private String refreshToken;
+        @NotNull
+        String refreshToken
+) {
+
 
 }
