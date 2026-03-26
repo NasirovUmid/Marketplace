@@ -82,14 +82,14 @@ public class FileService {
 
     }
 
-    public void deleteImageFromBucket(UUID id, String objectKey) {
+    public void deleteImageFromBucket(String objectKey) {
 
         try {
 
             minioClient.removeObject(RemoveObjectArgs
                     .builder()
                     .bucket(bucket)
-                    .object(id + "_" + objectKey)
+                    .object(objectKey)
                     .build());
         } catch (Exception e) {
 

@@ -1,6 +1,7 @@
 package com.pm.catalogservice.repository;
 
 import com.pm.catalogservice.entity.Catalog;
+import com.pm.catalogservice.enums.CatalogStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,14 +21,19 @@ public interface CatalogRepository extends JpaRepository<Catalog, UUID> {
             where (:status is null or c.status = :status)
               and (:priceFrom is null or c.price >= :priceFrom)
               and (:priceTo is null or c.price <= :priceTo)
-              and (:dateFrom is null or c.dateOfEvent >= :dateFrom)
-              and (:dateTo is null or c.dateOfEvent <= :dateTo)
+              and (cast(:dateFrom as timestamp ) is null or c.dateOfEvent >= :dateFrom)
+              and (cast(:dateTo as timestamp ) is null or c.dateOfEvent <= :dateTo)
             """)
     Page<Catalog> search(
+            @Param("priceFrom")
             Integer priceFrom,
+            @Param("priceTo")
             Integer priceTo,
-            String status,
+            @Param("status")
+            CatalogStatus status,
+            @Param("dateFrom")
             Instant dateFrom,
+            @Param("dateTo")
             Instant dateTo,
             Pageable pageable
     );

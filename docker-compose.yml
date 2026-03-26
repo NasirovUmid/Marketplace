@@ -122,7 +122,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PASSWORD=java
       - SPRING_DATA_REDIS_PORT=6379
-      - JWT_SECRET=pWuv61GzhDPR3p9kN340TXbdNoy0lfhV1pz2RnAHwuP
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-service-database:5432/auth-service-DB
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -234,9 +233,7 @@ services:
       - SPRING_DATA_REDIS_PASSWORD=java
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATA_REDIS_HOST=redis
-      - STRIPE_WEBHOOK_SECRET=whsec_4f16b35ff5ddedeecddd19d05b88fa46bf17475c94d412f72c58e709935b910f
       #- SERVER_PORT=8087
-      - STRIPE_API_KEY=sk_test_51SpJRIB3ELcBhVjIgTaah9OSXOpLo3zrtRJcRcVV3JfhPxhyLWkMwjGFKrJWZ1lz4x0zysWOJhjwuyMFY7baIBpT00GgV5FcVe
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-service-db:5432/payments_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -275,7 +272,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://catalog-service-db:5432/catalogs_db
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SPRING_MAIN_LOG_LEVEL=DEBUG
 
@@ -349,9 +346,8 @@ services:
       - --events
       - payment_intent.succeeded,payment_intent.payment_failed,checkout.session.completed
       - --api-key
-      - sk_test_51SpJRIB3ELcBhVjIgTaah9OSXOpLo3zrtRJcRcVV3JfhPxhyLWkMwjGFKrJWZ1lz4x0zysWOJhjwuyMFY7baIBpT00GgV5FcVe
+      -
     environment:
-      - STRIPE_API_KEY=sk_test_51SpJRIB3ELcBhVjIgTaah9OSXOpLo3zrtRJcRcVV3JfhPxhyLWkMwjGFKrJWZ1lz4x0zysWOJhjwuyMFY7baIBpT00GgV5FcVe
       - automatic_payment_methods.allow_redirects=never
     depends_on:
       - payment-service

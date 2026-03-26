@@ -47,14 +47,14 @@ public class UserController {
     })
     @GetMapping()
     public Page<User> usersList(
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Sorting. Allowed: registeredDate,desc | registeredDate,asc", example = "registeredDate,desc") @RequestParam(defaultValue = "registeredDate,desc") String sort,
-            @Parameter(description = "Size. Allowed: 20 | 50 , by default: 20", example = "20") @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) Instant birthDateFrom,
-            @RequestParam(required = false) Instant birthDateTo,
-            @RequestParam(required = false) Instant registerDateFrom,
-            @RequestParam(required = false) Instant registerDateTo
+            @RequestParam(defaultValue = "0",name = "page") int page,
+            @Parameter(description = "Sorting. Allowed: registeredDate,desc | registeredDate,asc", example = "registeredDate,desc") @RequestParam(defaultValue = "registeredDate,desc",name = "sort") String sort,
+            @Parameter(description = "Size. Allowed: 20 | 50 , by default: 20", example = "20") @RequestParam(defaultValue = "20",name = "size") int size,
+            @RequestParam(required = false,name = "email") String email,
+            @RequestParam(required = false,name = "birthDateFrom") Instant birthDateFrom,
+            @RequestParam(required = false,name = "birthDateTo") Instant birthDateTo,
+            @RequestParam(required = false,name = "registerDateFrom") Instant registerDateFrom,
+            @RequestParam(required = false,name = "registerDateTo") Instant registerDateTo
     ) {
 
         Page<User> page1 = userService.userList(Math.max(page, 0), sort, size == 20 ? size : size == 50 ? size : 20, email, birthDateFrom, birthDateTo, registerDateFrom, registerDateTo);

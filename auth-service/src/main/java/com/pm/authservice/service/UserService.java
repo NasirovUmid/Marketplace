@@ -14,6 +14,7 @@ import com.pm.commonevents.exception.NotFoundException;
 import io.jsonwebtoken.Claims;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -47,6 +48,7 @@ public class UserService {
         return jwtAuthenticationDto;
     }
 
+
     public JwtAuthenticationDto refreshToken(RefreshTokenDto refreshTokenDto) {
 
         String refreshToken = refreshTokenDto.refreshToken();
@@ -77,6 +79,7 @@ public class UserService {
         throw new InvalidTokenException(null);
     }
 
+    @Transactional
     public UserCreationResponseDto creatingUser(CreationRequest creatingRequest) {
 
         validateIdempotency(creatingRequest.email());

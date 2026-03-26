@@ -3,7 +3,6 @@ package com.pm.bookingservice.controller;
 import com.pm.bookingservice.dto.AdminBookingDto;
 import com.pm.bookingservice.dto.BookingRequestDto;
 import com.pm.bookingservice.dto.UserBookingDto;
-import com.pm.bookingservice.entity.Booking;
 import com.pm.bookingservice.service.BookingService;
 import com.pm.commonevents.exception.ApiProblem;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,11 +35,11 @@ public class BookingController {
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @GetMapping("{catalogId}")
-    public Page<AdminBookingDto> getCatalog(@RequestParam(defaultValue = "0") int page,
-                                            @RequestParam(defaultValue = "createdat,desc") String sort,
-                                            @RequestParam(defaultValue = "10") int size,
-                                            @RequestParam() String status,
-                                            @PathVariable() UUID catalogId) {
+    public Page<AdminBookingDto> getCatalog(@RequestParam(defaultValue = "0", name = "page") int page,
+                                            @RequestParam(defaultValue = "createdat,desc", name = "sort") String sort,
+                                            @RequestParam(defaultValue = "10", name = "size") int size,
+                                            @RequestParam(defaultValue = "PENDING_PAYMENT", name = "status") String status,
+                                            @PathVariable(name = "catalogId") UUID catalogId) {
 
         return bookingService.getCatalogBookings(catalogId, page, size, sort, status);
     }
@@ -53,10 +52,10 @@ public class BookingController {
     })
     @GetMapping("my")
     public Page<UserBookingDto> getPersonalBookings(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdat,desc") String sort,
-            @RequestParam(defaultValue = "BOOKING_CONFIRMED") String status,
+            @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestParam(defaultValue = "10", name = "size") int size,
+            @RequestParam(defaultValue = "createdat,desc", name = "sort") String sort,
+            @RequestParam(defaultValue = "BOOKING_CONFIRMED", name = "status") String status,
             @RequestHeader("X-User-Id") UUID userId) {
 
         return bookingService.getUsersBookings(userId, size, page, sort, status);

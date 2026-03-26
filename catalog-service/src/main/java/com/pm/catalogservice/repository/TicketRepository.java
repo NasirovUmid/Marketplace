@@ -6,14 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
-    List<Ticket> findTicketsByCatalog(Catalog catalog);
+    Optional<List<Ticket>> findTicketsByCatalog(Catalog catalog);
 
     List<Ticket> findAllByCatalogId(UUID catalogId);
 
-    Catalog findCatalogByCatalogId(UUID uuid);
 }

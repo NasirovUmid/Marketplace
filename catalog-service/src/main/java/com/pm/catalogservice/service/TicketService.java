@@ -1,5 +1,6 @@
 package com.pm.catalogservice.service;
 
+import com.pm.catalogservice.dto.TicketResponseDto;
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.TicketStatus;
@@ -30,14 +31,13 @@ public class TicketService {
             throw new NotFoundException("FIND CATALOG BY ID FOR TICKET: Catalog with ID = [ " + catalogId + " ] ");
         }
 
-        List<Ticket> ticketList = ticketRepository.findTicketsByCatalog(catalog.orElse(null))
-                .stream().filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).toList();
+        Optional<List<Ticket>> ticketList = ticketRepository.findTicketsByCatalog(catalog.get());
 
-        if (ticketList == null)
-            throw new NotFoundException("FIND AVAILABLE TICKETS BY CATALOG : Tickets of [ " + catalog.get().getTitle() + " ] ");
-        if (ticketList.isEmpty()) return null;
+        if (ticketList.isEmpty()) {
+            throw new NotFoundException("TICKETS OF CATALOG = " + catalog);
+        }
 
-        return ticketList;
+        return ticketList.get().stream().filter(ticket -> ticket.getStatus().equals(TicketStatus.AVAILABLE)).toList();
     }
 
     public void changeTicketStatus(UUID catalogId, UUID ticketId, TicketStatus ticketStatus, UUID buyerId) throws BadRequestException {
@@ -55,6 +55,18 @@ public class TicketService {
 
         ticketRepository.save(newTicket);
 
+    }
+
+    public List<TicketResponseDto> getTicketList(Catalog catalog) {
+
+
+        Optional<List<Ticket>> ticketList = ticketRepository.findTicketsByCatalog(catalog);
+
+        if (ticketList.isEmpty()) {
+            throw new NotFoundException("TICKETS WAS ");
+        }
+
+        return ticketList.get().stream().map(TicketResponseDto::from).toList();
     }
 
     private TicketStatus statusCheck(TicketStatus newStatus, TicketStatus oldStatus) throws BadRequestException {

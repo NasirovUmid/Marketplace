@@ -1,15 +1,16 @@
 package com.pm.catalogservice.service;
 
+import com.pm.catalogservice.dto.CatalogPageResponseDto;
 import com.pm.catalogservice.dto.CatalogResponseDto;
+import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.dto.UpdateRequestDto;
 import com.pm.catalogservice.entity.Catalog;
-import com.pm.catalogservice.enums.TicketStatus;
-import com.pm.commonevents.CatalogNotificationEvent;
-import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.CatalogStatus;
+import com.pm.catalogservice.enums.TicketStatus;
 import com.pm.catalogservice.repository.CatalogRepository;
 import com.pm.catalogservice.repository.TicketRepository;
+import com.pm.commonevents.CatalogNotificationEvent;
 import com.pm.commonevents.exception.AlreadyExistsException;
 import com.pm.commonevents.exception.NotFoundException;
 import lombok.AllArgsConstructor;
@@ -32,21 +33,22 @@ import java.util.UUID;
 public class CatalogService {
 
     private final CatalogRepository catalogRepository;
-    private final TicketRepository ticketRepository;
     private final KafkaEventProducer kafkaEventProducer;
     private final TicketService ticketService;
 
-    public Page<Catalog> getAllCatalogs(Pageable pageable,
+    @Transactional(readOnly = true)
+    public Page<CatalogPageResponseDto> getAllCatalogs(Pageable pageable,
                                         Integer priceFrom,
                                         Integer priceTo,
-                                        String status,
+                                        CatalogStatus status,
                                         Instant dateFrom,
                                         Instant dateTo) {
 
-        return catalogRepository.search(priceFrom, priceTo, status, dateFrom, dateTo, pageable);
+        return catalogRepository.search(priceFrom, priceTo, status, dateFrom, dateTo, pageable).map(CatalogPageResponseDto::from);
 
     }
 
+    @Transactional
     public UUID creatingCatalog(CreationRequestDto catalog) {
 
         if (catalogRepository.existsByTitle(catalog.title()))
@@ -83,6 +85,7 @@ public class CatalogService {
         return newCatalog.getId();
     }
 
+    @Transactional(readOnly = true)
     public CatalogResponseDto getCatalog(UUID catalogId) {
 
         Catalog catalog = getCatalogById(catalogId);
@@ -96,7 +99,7 @@ public class CatalogService {
 
         catalog.setNumberOfTickets(null);
 
-        return new CatalogResponseDto(catalog, totalTickets, catalog.getNumberOfTickets().size());
+        return new CatalogResponseDto(catalog, ticketService.getTicketList(catalog), totalTickets, tickets.size());
     }
 
     public List<Ticket> getCatalogsAvailableTickets(UUID id) {

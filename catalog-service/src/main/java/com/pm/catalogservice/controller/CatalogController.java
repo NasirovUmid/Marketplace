@@ -1,10 +1,12 @@
 package com.pm.catalogservice.controller;
 
+import com.pm.catalogservice.dto.CatalogPageResponseDto;
 import com.pm.catalogservice.dto.CatalogResponseDto;
 import com.pm.catalogservice.dto.CreationRequestDto;
 import com.pm.catalogservice.dto.UpdateRequestDto;
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
+import com.pm.catalogservice.enums.CatalogStatus;
 import com.pm.catalogservice.service.CatalogService;
 import com.pm.commonevents.exception.ApiProblem;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,13 +45,13 @@ public class CatalogController {
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @GetMapping()
-    public Page<Catalog> getCatalogs(@Parameter(description = "Page of Catalogs , size = 20 ", example = "1") @RequestParam(defaultValue = "0") int page,
-                                     @RequestParam(defaultValue = "dateOfEvent,asc") String sort,
-                                     @RequestParam(required = false) Integer priceFrom,
-                                     @RequestParam(required = false) Integer priceTo,
-                                     @RequestParam(required = false) String status,
-                                     @RequestParam(required = false) Instant dateFrom,
-                                     @RequestParam(required = false) Instant dateTo) {
+    public Page<CatalogPageResponseDto> getCatalogs(@Parameter(description = "Page of Catalogs , size = 20 ", example = "1") @RequestParam(defaultValue = "0", name = "page") int page,
+                                                    @RequestParam(defaultValue = "dateOfEvent,asc", name = "sort") String sort,
+                                                    @RequestParam(required = false, name = "priceFrom") Integer priceFrom,
+                                                    @RequestParam(required = false, name = "priceTo") Integer priceTo,
+                                                    @RequestParam(required = false, name = "status") CatalogStatus status,
+                                                    @RequestParam(required = false, name = "dateFrom") Instant dateFrom,
+                                                    @RequestParam(required = false, name = "dateTo") Instant dateTo) {
 
         Pageable pageable = PageRequest.of(Math.max(page, 0), 20, toCatalogSort(sort));
         return catalogService.getAllCatalogs(pageable, priceFrom, priceTo, status, dateFrom, dateTo);
@@ -83,8 +85,8 @@ public class CatalogController {
                     content = @Content(mediaType = "application/problem + json",
                             schema = @Schema(implementation = ApiProblem.class)))
     })
-    @GetMapping("{id}")
-    public CatalogResponseDto getCatalogDetails(@PathVariable UUID id) {
+    @GetMapping("/{id}")
+    public CatalogResponseDto getCatalogDetails(@PathVariable(name = "id") UUID id) {
 
         return catalogService.getCatalog(id);
 

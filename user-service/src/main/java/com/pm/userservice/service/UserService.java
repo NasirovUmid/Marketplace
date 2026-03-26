@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
@@ -73,7 +74,7 @@ public class UserService {
             user.setFullName(updateRequestDTO.fullName());
         }
 
-        if (updateRequestDTO.bio().isBlank() || updateRequestDTO.bio() != null) {
+        if (updateRequestDTO.bio() != null) {
             user.setBio(updateRequestDTO.bio());
         }
 
@@ -81,13 +82,13 @@ public class UserService {
             user.setPhoneNumber(updateRequestDTO.phoneNumber());
         }
 
-        if (multipartFile != null || multipartFile.isEmpty()) {
+        if (multipartFile != null && !multipartFile.isEmpty()) {
 
-            String newFileUrl = UUID.randomUUID() + "." + multipartFile.getOriginalFilename().substring(
-                    multipartFile.getOriginalFilename().lastIndexOf(".")
-            );
+            String extension = StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
 
-            fileService.deleteImageFromBucket(user.getId(), user.getImageUrl());
+            String newFileUrl = UUID.randomUUID() + (extension != null ? "." + extension : "");
+
+            fileService.deleteImageFromBucket(user.getImageUrl());
 
             String objectKey = fileService.uploadFileToMinio(user.getId(), multipartFile, newFileUrl);
 

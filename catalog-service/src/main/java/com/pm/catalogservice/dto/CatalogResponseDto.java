@@ -7,6 +7,7 @@ import java.util.List;
 
 public record CatalogResponseDto(
         Catalog catalog,
+        List<TicketResponseDto> ticketList,
         long totalTicketsNumber,
         int availableTicketsNumber) {
 }

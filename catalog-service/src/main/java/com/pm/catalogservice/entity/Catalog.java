@@ -1,6 +1,7 @@
 package com.pm.catalogservice.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pm.catalogservice.enums.CatalogStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,7 @@ public class Catalog {
 
     private UUID creatorId;
 
+    @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private List<Ticket> numberOfTickets;
 

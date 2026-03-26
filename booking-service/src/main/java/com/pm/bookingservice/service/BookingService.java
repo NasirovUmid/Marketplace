@@ -169,7 +169,7 @@ public class BookingService {
 
         Optional<Booking> booking = bookingRepository.findBookingByTicketIdAndUserId(ticketId, userId);
 
-        if (null != booking.get()) {
+        if (booking.isPresent()) {
 
             throw new AlreadyExistsException("Booking ");
         }
