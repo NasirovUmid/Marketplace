@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,8 @@ public class AuthController {
 
     private final UserService userService;
 
-    public AuthController(UserService userService1) {
-        this.userService = userService1;
+    public AuthController(UserService userService) {
+        this.userService = userService;
     }
 
     @Operation(summary = "Login in existing account", description = "Entering already created account to get tokens")
@@ -37,7 +39,7 @@ public class AuthController {
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @PostMapping("login")
-    public ResponseEntity<JwtAuthenticationDto> login(@RequestBody UserCredentialsDto userCredentialsDto) {
+    public ResponseEntity<JwtAuthenticationDto> login(@Valid @RequestBody UserCredentialsDto userCredentialsDto) {
 
         JwtAuthenticationDto jwtAuthenticationDto = userService.login(userCredentialsDto);
 
@@ -46,15 +48,15 @@ public class AuthController {
 
     @Operation(summary = "Create account", description = "Creates new Account")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Creates new user",
+            @ApiResponse(responseCode = "200", description = "New user successfully created",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = UserCreationResponseDto.class))),
-            @ApiResponse(responseCode = "409", description = "Conflict with existing data",
+            @ApiResponse(responseCode = "409", description = "User already exists",
                     content = @Content(mediaType = "application/problem + json",
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @PostMapping("register")
-    public ResponseEntity<UserCreationResponseDto> register(@RequestBody CreationRequest creationRequest) {
+    public ResponseEntity<UserCreationResponseDto> register(@Valid @RequestBody CreationRequest creationRequest) {
 
         UserCreationResponseDto userCreationResponseDto = userService.creatingUser(creationRequest);
 
@@ -113,10 +115,10 @@ public class AuthController {
                     content = @Content(mediaType = "application/problem + json",
                             schema = @Schema(implementation = ApiProblem.class)))
     })
-    @PostMapping("log-out/{id}")
-    public ResponseEntity<Void> logOut(@PathVariable UUID id) {
+    @PostMapping("log-out")
+    public ResponseEntity<Void> logOut(@RequestHeader("Authorization") String token) {
 
-        userService.logOut(id);
+        userService.logOut(token);
 
         return ResponseEntity.ok().build();
     }
@@ -129,7 +131,7 @@ public class AuthController {
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @PatchMapping("change-password")
-    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) throws BadRequestException {
 
         userService.changePassword(changePasswordDto);
 

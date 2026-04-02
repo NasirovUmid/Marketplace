@@ -11,7 +11,7 @@ public record CreationRequest(
         String password,
         @NotNull @Past
         Instant birthDate,
-        @NotNull @Pattern(regexp = "^(\\\\+?998)?\\\\d{9}$", message = "A number has to be in the format of (+)998XXXXXXXXX")
+        @NotNull @Pattern(regexp = "^(\\+)?998\\d{9}$", message = "A number has to be in the format of (+)998XXXXXXXXX")
         String phoneNumber
 ) {
 }

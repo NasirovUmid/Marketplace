@@ -173,7 +173,6 @@ public class BookingService {
 
             throw new AlreadyExistsException("Booking ");
         }
-
     }
 
     private <T> T notnull(Optional<T> booking) {

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -71,7 +72,7 @@ public class BookingController {
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @PostMapping("create")
-    public ResponseEntity<UUID> creatingBooking(@RequestBody BookingRequestDto booking) {
+    public ResponseEntity<UUID> creatingBooking(@Valid @RequestBody BookingRequestDto booking) {
 
         UUID bookingId = bookingService.creatingBooking(booking);
 

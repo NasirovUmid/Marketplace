@@ -233,6 +233,8 @@ services:
       - SPRING_DATA_REDIS_PASSWORD=java
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATA_REDIS_HOST=redis
+      - STRIPE_API_KEY=sk_test_51SpJRIB3ELcBhVjIgTaah9OSXOpLo3zrtRJcRcVV3JfhPxhyLWkMwjGFKrJWZ1lz4x0zysWOJhjwuyMFY7baIBpT00GgV5FcVe
+      - STRIPE_WEBHOOK_SECRET=whsec_4f16b35ff5ddedeecddd19d05b88fa46bf17475c94d412f72c58e709935b910f
       #- SERVER_PORT=8087
       - SPRING_DATASOURCE_PASSWORD=java
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-service-db:5432/payments_db
@@ -346,9 +348,10 @@ services:
       - --events
       - payment_intent.succeeded,payment_intent.payment_failed,checkout.session.completed
       - --api-key
-      -
+      - sk_test_51SpJRIB3ELcBhVjIgTaah9OSXOpLo3zrtRJcRcVV3JfhPxhyLWkMwjGFKrJWZ1lz4x0zysWOJhjwuyMFY7baIBpT00GgV5FcVe
     environment:
       - automatic_payment_methods.allow_redirects=never
+      - STRIPE_API_KEY=sk_test_51SpJRIB3ELcBhVjIgTaah9OSXOpLo3zrtRJcRcVV3JfhPxhyLWkMwjGFKrJWZ1lz4x0zysWOJhjwuyMFY7baIBpT00GgV5FcVe
     depends_on:
       - payment-service
 

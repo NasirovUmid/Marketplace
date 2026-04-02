@@ -1,9 +1,6 @@
 package com.pm.catalogservice.service;
 
-import com.pm.catalogservice.dto.CatalogPageResponseDto;
-import com.pm.catalogservice.dto.CatalogResponseDto;
-import com.pm.catalogservice.dto.CreationRequestDto;
-import com.pm.catalogservice.dto.UpdateRequestDto;
+import com.pm.catalogservice.dto.*;
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.CatalogStatus;
@@ -15,6 +12,7 @@ import com.pm.commonevents.exception.AlreadyExistsException;
 import com.pm.commonevents.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @AllArgsConstructor
@@ -38,11 +33,15 @@ public class CatalogService {
 
     @Transactional(readOnly = true)
     public Page<CatalogPageResponseDto> getAllCatalogs(Pageable pageable,
-                                        Integer priceFrom,
-                                        Integer priceTo,
-                                        CatalogStatus status,
-                                        Instant dateFrom,
-                                        Instant dateTo) {
+                                                       Integer priceFrom,
+                                                       Integer priceTo,
+                                                       CatalogStatus status,
+                                                       Instant dateFrom,
+                                                       Instant dateTo) throws BadRequestException {
+
+        if (priceFrom != null && priceTo != null && priceFrom > priceTo) {
+            throw new BadRequestException("priceFrom cannot be greater than priceTo");
+        }
 
         return catalogRepository.search(priceFrom, priceTo, status, dateFrom, dateTo, pageable).map(CatalogPageResponseDto::from);
 
@@ -54,12 +53,12 @@ public class CatalogService {
         if (catalogRepository.existsByTitle(catalog.title()))
             throw new AlreadyExistsException("CATALOG CREATE: Catalog with = [ " + catalog.title() + " ] ");
 
-        Catalog newCatalog = Catalog.builder().
-                title(catalog.title()).
-                description(catalog.description())
+        Catalog newCatalog = Catalog.builder()
+                .title(catalog.title())
+                .description(catalog.description())
                 .price(catalog.price())
                 .creatorId(catalog.creatorId())
-                .numberOfTickets(null)
+                .ticketList(null)
                 .status(CatalogStatus.ACTIVE)
                 .dateOfEvent(catalog.dateOfEvents())
                 .createdAt(Instant.now())
@@ -76,13 +75,13 @@ public class CatalogService {
                     .build());
         }
 
-        newCatalog.setNumberOfTickets(ticketList);
-        catalogRepository.save(newCatalog);
+        newCatalog.setTicketList(ticketList);
+        Catalog savedCatalog = catalogRepository.save(newCatalog);
         kafkaEventProducer.sendCatalogNotification(
-                new CatalogNotificationEvent(newCatalog.getId(), newCatalog.getTitle(),
-                        newCatalog.getCreatorId(), CatalogStatus.CATALOG_CREATED.name(), newCatalog.getCreatedAt()));
+                new CatalogNotificationEvent(savedCatalog.getId(), savedCatalog.getTitle(),
+                        savedCatalog.getCreatorId(), CatalogStatus.CATALOG_CREATED.name(), savedCatalog.getCreatedAt()));
 
-        return newCatalog.getId();
+        return savedCatalog.getId();
     }
 
     @Transactional(readOnly = true)
@@ -97,28 +96,32 @@ public class CatalogService {
             catalog.setStatus(CatalogStatus.SOLD_OUT);
         }
 
-        catalog.setNumberOfTickets(null);
+        catalog.setTicketList(null);
 
         return new CatalogResponseDto(catalog, ticketService.getTicketList(catalog), totalTickets, tickets.size());
     }
 
-    public List<Ticket> getCatalogsAvailableTickets(UUID id) {
+    public List<TicketResponseDto> getCatalogsAvailableTickets(UUID id) {
 
-        return ticketService.availableTickets(id);
+        return ticketService.availableTickets(id).stream().map(TicketResponseDto::from).toList();
 
     }
 
     @Transactional
     public Catalog updateCatalog(UUID id, UpdateRequestDto updateRequestDto) {
 
+        if (id == null || updateRequestDto == null) {
+            throw new IllegalArgumentException("Body is null");
+        }
+
         Catalog updatingCatalog = getCatalogById(id);
 
-        if (updatingCatalog.getTitle() != null) {
+        if (updateRequestDto.title() != null) {
             updatingCatalog.setTitle(updateRequestDto.title());
         }
 
-        if (updatingCatalog.getDescription().isBlank() || updateRequestDto != null) {
-            updatingCatalog.setTitle(updatingCatalog.getDescription());
+        if (updateRequestDto.description() != null) {
+            updatingCatalog.setDescription(updateRequestDto.description());
         }
 
         if (updateRequestDto.price() != null) {
@@ -129,14 +132,24 @@ public class CatalogService {
             updatingCatalog.setDateOfEvent(updateRequestDto.dateOfEvent());
         }
 
-        return catalogRepository.save(updatingCatalog);
+        Catalog catalog = catalogRepository.save(updatingCatalog);
+
+        catalog.setTicketList(null);
+
+        return catalog;
 
     }
 
-    // guess admin should deactivate not delete from Database but i dunno how to do this probably add new endpoint only for admins and also new STATUS (enum)
-    public void deleteCatalog(UUID catalogId) {
+    public void deactivateCatalog(UUID catalogId) {
 
-        catalogRepository.deleteById(catalogId);
+        Catalog catalog = catalogRepository.findById(catalogId).orElseThrow(() -> new NotFoundException("Catalog for Deactivation "));
+
+        if (!catalog.getStatus().equals(CatalogStatus.ACTIVE)) {
+            throw new IllegalStateException("Catalog cannot be Deactivated!");
+        }
+
+        catalog.setStatus(CatalogStatus.DEACTIVATED);
+        catalogRepository.save(catalog);
 
     }
 

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,8 +26,17 @@ public class GlobalExceptionHandler {
         logger.error("EMAIL ALREADY EXISTS EXCEPTION   = {} ", emailAlreadyExistsException.getMessage().toUpperCase());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                ApiProblem.of(HttpStatus.CONFLICT,  emailAlreadyExistsException.getMessage(), httpServletRequest, emailAlreadyExistsException));
+                ApiProblem.of(HttpStatus.CONFLICT, emailAlreadyExistsException.getMessage(), httpServletRequest, emailAlreadyExistsException));
 
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleBadCredentialsException(BadCredentialsException badCredentialsException, HttpServletRequest httpServletRequest) {
+
+        logger.error("WRONG CREDENTIALS = {}", badCredentialsException.getMessage().toUpperCase());
+
+        return ResponseEntity.status(401).body(
+                ApiProblem.of(HttpStatus.UNAUTHORIZED, badCredentialsException.getMessage(), httpServletRequest, badCredentialsException));
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -66,7 +76,7 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.status(status).body(
-                ApiProblem.of(status, exception.getMessage(), httpServletRequest, exception));
+                ApiProblem.of(status, detail, httpServletRequest, exception));
 
 
     }

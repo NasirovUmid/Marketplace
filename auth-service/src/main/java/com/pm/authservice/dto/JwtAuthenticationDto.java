@@ -5,10 +5,10 @@ import lombok.Builder;
 
 @Builder
 public record JwtAuthenticationDto(
-        @NotNull
+
         String token,
 
-        @NotNull
+
         String refreshToken
 ) {
 

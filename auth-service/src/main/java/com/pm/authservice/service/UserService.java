@@ -12,6 +12,8 @@ import com.pm.commonevents.enums.UserEventType;
 import com.pm.commonevents.exception.AlreadyExistsException;
 import com.pm.commonevents.exception.NotFoundException;
 import io.jsonwebtoken.Claims;
+import org.apache.coyote.BadRequestException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +56,9 @@ public class UserService {
         String refreshToken = refreshTokenDto.refreshToken();
 
         Claims claims = jwtService.extractClaims(refreshToken);
+        String type = claims.get("type", String.class);
 
-        if (claims.get("type") != TokenType.REFRESH)
+        if (!TokenType.REFRESH.name().equals(type))
             throw new InvalidTokenException(refreshTokenDto.refreshToken());
 
         jwtService.validateJwtToken(refreshToken);
@@ -69,9 +72,7 @@ public class UserService {
             if (!exists)
                 throw new InvalidTokenException(refreshTokenDto.refreshToken());
 
-
             String refresh = refreshTokenService.getRefreshToken(user.getId().toString());
-
 
             return jwtService.refreshBaseToken(user.getEmail(), refresh);
         }
@@ -101,15 +102,13 @@ public class UserService {
 
     private User findByCredentials(UserCredentialsDto userCredentialsDto) {
 
-        Optional<User> user = userRepository.findUserByEmail(userCredentialsDto.email());
+        User user = userRepository.findUserByEmail(userCredentialsDto.email()).orElseThrow(() -> new NotFoundException("LOGIN: User with [ " + userCredentialsDto.email() + " ]"));
 
-        if (user.isPresent()) {
-
-            if (passwordEncoder.matches(userCredentialsDto.password(), user.get().getPassword()))//First decoding and comparing
-                return user.orElseThrow(() -> new RuntimeException("Email or Password is invalid"));
-
+        if (!passwordEncoder.matches(userCredentialsDto.password(), user.getPassword())) {//First decoding and comparing
+            throw new BadCredentialsException("Email or Password is invalid");
         }
-        throw new NotFoundException("LOGIN: User with [ " + userCredentialsDto.email() + " ]");
+
+        return user;
     }
 
     private User findByEmail(String email) {
@@ -123,7 +122,6 @@ public class UserService {
         if (userRepository.existsByEmail(email)) {
             throw new AlreadyExistsException("REGISTRATION: User with = [ " + email + " ] ");
         }
-
     }
 
     public void validateToken(String token) {
@@ -132,27 +130,39 @@ public class UserService {
 
     }
 
-    public void logOut(UUID uuid) {
+    public void logOut(String token) {
 
-        if (!refreshTokenService.exists(String.valueOf(uuid)))
-            throw new NotFoundException("The id for logging out was ");
+        if (token == null || token.isBlank() || !token.startsWith("Bearer ")) {
+            throw new InvalidTokenException(token);
+        }
 
-        refreshTokenService.deleteById(String.valueOf(uuid));
+        String emailFromToken = jwtService.getEmailFromToken(token.substring(7));
+
+        UUID userId = findByEmail(emailFromToken).getId();
+
+        if (!refreshTokenService.exists(String.valueOf(userId)))
+            throw new InvalidTokenException("The id for logging out was ");
+
+        refreshTokenService.deleteById(String.valueOf(userId));
     }
 
-    public void changePassword(ChangePasswordDto changePasswordDto) {
+    public void changePassword(ChangePasswordDto changePasswordDto) throws BadRequestException {
+
+        if (changePasswordDto.oldPassword().equals(changePasswordDto.newPassword())) {
+            throw new BadRequestException();
+        }
 
         User user = findByCredentials(new UserCredentialsDto(changePasswordDto.email(), changePasswordDto.oldPassword()));
 
-        if (user != null) {
+        if (passwordEncoder.matches(changePasswordDto.oldPassword(), user.getPassword())) {
 
-            user.setPassword(changePasswordDto.newPassword());
+            user.setPassword(passwordEncoder.encode(changePasswordDto.newPassword()));
             userRepository.save(user);
             refreshTokenService.deleteById(String.valueOf(user.getId()));
             return;
         }
 
-        throw new NotFoundException("User with credentials during Changing password ");
+        throw new BadCredentialsException("Wrong  username or password");
 
     }
 }

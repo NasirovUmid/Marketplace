@@ -20,23 +20,16 @@ public final class ApiProblem {
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(httpStatus, detail);
         pd.setTitle(httpStatus.getReasonPhrase());
-        pd.setType(URI.create("about:blank: " + code));
+        pd.setType(URI.create("about:blank:" + code));
 
         if (httpServlet != null) pd.setInstance(URI.create(httpServlet.getRequestURI()));
 
         pd.setProperty("code", code);
         pd.setProperty("timestamp", Instant.now().toString());
         pd.setProperty("method", httpServlet != null ? httpServlet.getMethod() : null);
-
         pd.setProperty("requestId", UUID.randomUUID().toString());
+        pd.setProperty("exception", ex.getClass().getSimpleName());
 
-        if (ex != null) {
-            pd.setProperty("exception", ex.getClass().getSimpleName());
-        }
-
-        if (ex != null) {
-            pd.setProperty("exception", ex.getClass().getSimpleName());
-        }
 
         return pd;
     }

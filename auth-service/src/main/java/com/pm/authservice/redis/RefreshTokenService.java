@@ -28,9 +28,9 @@ public class RefreshTokenService {
 
     }
 
-    public boolean deleteById(String id) {
+    public void deleteById(String id) {
 
-        return redisTemplate.delete("refresh:" + id);
+         redisTemplate.delete("refresh:" + id);
 
     }
 

@@ -31,8 +31,8 @@ public class Catalog {
     private UUID creatorId;
 
     @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
-    private List<Ticket> numberOfTickets;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Ticket> ticketList;
 
     @Enumerated(EnumType.STRING)
     private CatalogStatus status;
@@ -40,5 +40,20 @@ public class Catalog {
     private Instant dateOfEvent;
 
     private Instant createdAt;
+
+    @Override
+    public String toString() {
+        return "Catalog{" +
+                " id : " + id +
+                ", title :'" + title + '\'' +
+                ", description :'" + description + '\'' +
+                ", price :" + price +
+                ", creatorId :" + creatorId +
+                ", ticketList :" + ticketList +
+                ", status :" + status +
+                ", dateOfEvent :" + dateOfEvent +
+                ", createdAt :" + createdAt +" "+
+                '}';
+    }
 
 }

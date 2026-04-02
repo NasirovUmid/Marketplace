@@ -54,7 +54,6 @@ public class TicketService {
         newTicket.setBuyerId(buyerId);
 
         ticketRepository.save(newTicket);
-
     }
 
     public List<TicketResponseDto> getTicketList(Catalog catalog) {

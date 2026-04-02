@@ -1,9 +1,6 @@
 package com.pm.catalogservice.controller;
 
-import com.pm.catalogservice.dto.CatalogPageResponseDto;
-import com.pm.catalogservice.dto.CatalogResponseDto;
-import com.pm.catalogservice.dto.CreationRequestDto;
-import com.pm.catalogservice.dto.UpdateRequestDto;
+import com.pm.catalogservice.dto.*;
 import com.pm.catalogservice.entity.Catalog;
 import com.pm.catalogservice.entity.Ticket;
 import com.pm.catalogservice.enums.CatalogStatus;
@@ -15,11 +12,16 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -31,6 +33,7 @@ import static com.pm.catalogservice.service.CatalogService.toCatalogSort;
 @RestController
 @RequestMapping("/catalogs")
 @AllArgsConstructor
+@Validated
 public class CatalogController {
 
     private final CatalogService catalogService;
@@ -44,14 +47,16 @@ public class CatalogController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiProblem.class)))
     })
-    @GetMapping()
-    public Page<CatalogPageResponseDto> getCatalogs(@Parameter(description = "Page of Catalogs , size = 20 ", example = "1") @RequestParam(defaultValue = "0", name = "page") int page,
+    @GetMapping
+    public Page<CatalogPageResponseDto> getCatalogs(@Parameter(description = "Page of Catalogs , size = 20 ", example = "1")
+                                                    @RequestParam(defaultValue = "0", name = "page") @Positive @Min(0) @Max(50)
+                                                    int page,
                                                     @RequestParam(defaultValue = "dateOfEvent,asc", name = "sort") String sort,
-                                                    @RequestParam(required = false, name = "priceFrom") Integer priceFrom,
-                                                    @RequestParam(required = false, name = "priceTo") Integer priceTo,
+                                                    @RequestParam(required = false, name = "priceFrom") @Positive Integer priceFrom,
+                                                    @RequestParam(required = false, name = "priceTo") @Positive Integer priceTo,
                                                     @RequestParam(required = false, name = "status") CatalogStatus status,
                                                     @RequestParam(required = false, name = "dateFrom") Instant dateFrom,
-                                                    @RequestParam(required = false, name = "dateTo") Instant dateTo) {
+                                                    @RequestParam(required = false, name = "dateTo") Instant dateTo) throws BadRequestException {
 
         Pageable pageable = PageRequest.of(Math.max(page, 0), 20, toCatalogSort(sort));
         return catalogService.getAllCatalogs(pageable, priceFrom, priceTo, status, dateFrom, dateTo);
@@ -63,16 +68,17 @@ public class CatalogController {
             @ApiResponse(responseCode = "200", description = "Catalog created and Returns its ID",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = UUID.class))),
-            @ApiResponse(responseCode = "409", description = "conflict with existing data",
+            @ApiResponse(responseCode = "409", description = "Catalog already created",
                     content = @Content(mediaType = "application/problem + json",
                             schema = @Schema(implementation = ApiProblem.class)))
     })
-    @PostMapping()
-    public UUID creatingCatalog(@RequestBody CreationRequestDto catalog) {
+    @PostMapping
+    public ResponseEntity<UUID> creatingCatalog(@Valid @RequestBody CreationRequestDto catalog) {
 
         UUID catalogId = catalogService.creatingCatalog(catalog);
 
-        return catalogId;
+        return ResponseEntity.status(201).body(catalogId);
+
 
     }
 
@@ -102,7 +108,7 @@ public class CatalogController {
                             schema = @Schema(implementation = ApiProblem.class)))
     })
     @GetMapping("/{id}/tickets")
-    public List<Ticket> getNumberOfAvailableTickets(@PathVariable UUID id) {
+    public List<TicketResponseDto> getAvailableTickets(@PathVariable(name = "id") UUID id) {
 
         return catalogService.getCatalogsAvailableTickets(id);
 
@@ -114,8 +120,8 @@ public class CatalogController {
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "Catalog was not found")
     })
-    @PutMapping("{id}")
-    public ResponseEntity<Catalog> updateCatalog(@PathVariable UUID id, @RequestBody UpdateRequestDto catalog) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Catalog> updateCatalog(@PathVariable(name = "id") UUID id, @Valid @RequestBody UpdateRequestDto catalog) {
 
         Catalog updatedCatalog = catalogService.updateCatalog(id, catalog);
 
@@ -123,4 +129,17 @@ public class CatalogController {
 
     }
 
+    @Operation(summary = "Deactivates catalog", description = " Deactivates existing Active catalog ")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "catalog successfully deactivated"),
+            @ApiResponse(responseCode = "404", description = "catalog was not found"),
+            @ApiResponse(responseCode = "409", description = "catalog already deactivated")
+    })
+    @PatchMapping("{id}/deactivate")
+    public ResponseEntity<Void> deactivateCatalog(@PathVariable(name = "id") UUID id) {
+
+        catalogService.deactivateCatalog(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }
